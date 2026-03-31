@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "oscillator.h"
+#include "wav.h"
 
 void wtSineDiscretize(int16_t* ptr, size_t length) {
     for (int i = 0; i < length; i++) {
@@ -42,6 +43,15 @@ void wtSineRemap(int16_t* wtPtr, int16_t* outputPtr, size_t inputLength, size_t 
     }
 }
 
+/**
+ * Uses phase modulation to modulate a carrier.
+ * This makes use of phase modulation, in which the phase of the carrier is offset by the value of the modulator at that point in time
+ * 
+ * @param output The output buffer to write the synthesized samples to
+ * @param outputLength The number of samples to generate
+ * @param carrier The oscillator whose frequency will be modulated
+ * @param modulator The oscillator that controls the modulation depth
+ */
 void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Oscillator* modulator) {
     for (int i = 0; i < outputLength; i++) {
         float modVal = linInterp(modulator->table, modulator->phase);
@@ -75,8 +85,8 @@ void printPoints(int16_t* values, size_t length) {
 
 int main(int argc, char const *argv[])
 {
-     int16_t* wavetablePtr = (int16_t*)malloc(sizeof(int16_t) * 4096);
-    int16_t* modulatedWavePtr = (int16_t*)malloc(sizeof(int16_t) * 4096);
+    int16_t* wavetablePtr = (int16_t*)malloc(sizeof(int16_t) * 4096);
+    int16_t* modulatedWavePtr = (int16_t*)malloc(sizeof(int16_t) * 44100);
 
     wtSineDiscretize(wavetablePtr, 4096);
 
@@ -84,11 +94,12 @@ int main(int argc, char const *argv[])
     oscInit(&mainOscilator, wavetablePtr, 4096, 440.0f, 1, 44100.0f);
 
     Oscillator modulatorOscillator;
-    oscInit(&modulatorOscillator, wavetablePtr, 4096, 880.0f, 1.5f, 44100.0f);
+    oscInit(&modulatorOscillator, wavetablePtr, 4096, 1980.0f, 5.0f, 44100.0f);
 
-    wtFmModulate(modulatedWavePtr, 4096, &mainOscilator, &modulatorOscillator);
+    wtFmModulate(modulatedWavePtr, 44100, &mainOscilator, &modulatorOscillator);
     
-    printPoints(modulatedWavePtr, 4096);
+//    printPoints(modulatedWavePtr, 4096);
+    writeWavMono("demo.wav", modulatedWavePtr, 44100, 44100);
 
     free(wavetablePtr);
     free(modulatedWavePtr);
