@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "oscillator.h"
 
 void wtSineDiscretize(int16_t* ptr, size_t length) {
     for (int i = 0; i < length; i++) {
@@ -41,31 +42,55 @@ void wtSineRemap(int16_t* wtPtr, int16_t* outputPtr, size_t inputLength, size_t 
     }
 }
 
+void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Oscillator* modulator) {
+    for (int i = 0; i < outputLength; i++) {
+        float modVal = linInterp(modulator->table, modulator->phase);
+        
+        // Convert frequency deviation (Hz) to phase increment
+        // modIndex is in Hz, convert to wavetable samples per sample
+        float freqDeviation = modulator->modIndex * modulator->oscillatorFrequency * (modVal / 32767.0f);
+        float phaseDeviation = (freqDeviation * modulator->tableLen) / modulator->sampleRate;
+        
+        float perturbed = carrier->phase + phaseDeviation;
+        perturbed = fmodf(perturbed, (float)carrier->tableLen);
+        while (perturbed < 0) perturbed += carrier->tableLen;
+
+        output[i] = (int16_t) linInterp(carrier->table, perturbed);
+
+        oscIncreasePhase(carrier);
+        oscIncreasePhase(modulator);
+    }
+}
+
+void printPoints(int16_t* values, size_t length) {
+    printf("i = [");
+    for (int i = 0; i < length; i++) {
+        printf("(%i, %i)", i, values[i]);
+        if (!(i == length - 1)) {
+            printf(",");
+        }
+    }
+    printf("]\n");
+}
+
 int main(int argc, char const *argv[])
 {
-    int16_t* wavetablePtr = (int16_t*)malloc(sizeof(int16_t) * 256);
-    int16_t* aNotePtr = (int16_t*)malloc(sizeof(int16_t) * 4096);
+     int16_t* wavetablePtr = (int16_t*)malloc(sizeof(int16_t) * 4096);
+    int16_t* modulatedWavePtr = (int16_t*)malloc(sizeof(int16_t) * 4096);
 
-    if (wavetablePtr == NULL) {
-        return -1;
-    }
+    wtSineDiscretize(wavetablePtr, 4096);
 
-    wtSineDiscretize(wavetablePtr, 255);
-    wtSineRemap(wavetablePtr, aNotePtr, 255, 4096, 2600.0f, 44100.0f);
+    Oscillator mainOscilator;
+    oscInit(&mainOscilator, wavetablePtr, 4096, 440.0f, 1, 44100.0f);
 
-    printf("i = [");
-    for (int i = 0; i < 4096; i++) {
-        printf("(%i, %i),", i, aNotePtr[i]);
-    }
-    printf("]\n");
+    Oscillator modulatorOscillator;
+    oscInit(&modulatorOscillator, wavetablePtr, 4096, 880.0f, 1.5f, 44100.0f);
 
-    printf("j = [");
-    for (int i = 0; i < 256; i++) {
-        printf("(%i, %i),", i, wavetablePtr[i]);
-    }
-    printf("]\n");
+    wtFmModulate(modulatedWavePtr, 4096, &mainOscilator, &modulatorOscillator);
+    
+    printPoints(modulatedWavePtr, 4096);
 
     free(wavetablePtr);
-    free(aNotePtr);
+    free(modulatedWavePtr);
     return 0;
 }
