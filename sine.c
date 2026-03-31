@@ -58,13 +58,18 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
         
         float scalingConstant = modulator->tableLen / (2.0f * M_PI);
         float phaseDeviation = modulator->modIndex * (modVal / 32767.0f) * scalingConstant;
-        
+
+        // modulate the carrier by adding the phase deviation to the accumulator value
         float perturbed = carrier->phase + phaseDeviation;
+
+        // phase accumulator wrapping
         perturbed = fmodf(perturbed, (float)carrier->tableLen);
         while (perturbed < 0) perturbed += carrier->tableLen;
 
-        output[i] = (int16_t) linInterp(carrier->table, perturbed);
+        // interpolate to get modulated carrier value; store to outp
+        output[i] = linInterp(carrier->table, perturbed);
 
+        // increase accumulators
         oscIncreasePhase(carrier);
         oscIncreasePhase(modulator);
     }
