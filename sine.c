@@ -65,7 +65,7 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
         perturbed = fmodf(perturbed, (float)carrier->tableLen);
         while (perturbed < 0) perturbed += carrier->tableLen;
 
-        output[i] = (int16_t) linInterp(carrier->table, perturbed);
+        output[i] = linInterp(carrier->table, perturbed);
 
         oscIncreasePhase(carrier);
         oscIncreasePhase(modulator);
