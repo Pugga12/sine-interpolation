@@ -56,17 +56,23 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
     for (int i = 0; i < outputLength; i++) {
         float modVal = linInterp(modulator->table, modulator->phase);
         
-        // Convert frequency deviation (Hz) to phase increment
-        // modIndex is in Hz, convert to wavetable samples per sample
+        // remap mod value on scale of [-1, 1], and use it to calculate the desired frequency deviation. modIndex is adjusted by the modulator frequency to keep the ratios consistent
         float freqDeviation = modulator->modIndex * modulator->oscillatorFrequency * (modVal / 32767.0f);
-        float phaseDeviation = (freqDeviation * modulator->tableLen) / modulator->sampleRate;
         
+        // map frequency deviation to a phase accumulator deviation
+        float phaseDeviation = (freqDeviation * modulator->tableLen) / modulator->sampleRate;
+
+        // modulate the carrier by adding the phase deviation to the accumulator value
         float perturbed = carrier->phase + phaseDeviation;
+
+        // phase accumulator wrapping
         perturbed = fmodf(perturbed, (float)carrier->tableLen);
         while (perturbed < 0) perturbed += carrier->tableLen;
 
+        // interpolate to get modulated carrier value; store to outp
         output[i] = linInterp(carrier->table, perturbed);
 
+        // increase accumulators
         oscIncreasePhase(carrier);
         oscIncreasePhase(modulator);
     }
