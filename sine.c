@@ -56,10 +56,8 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
     for (int i = 0; i < outputLength; i++) {
         float modVal = linInterp(modulator->table, modulator->phase);
         
-        // Convert frequency deviation (Hz) to phase increment
-        // modIndex is in Hz, convert to wavetable samples per sample
-        float freqDeviation = modulator->modIndex * modulator->oscillatorFrequency * (modVal / 32767.0f);
-        float phaseDeviation = (freqDeviation * modulator->tableLen) / modulator->sampleRate;
+        float scalingConstant = modulator->tableLen / (2.0f * M_PI);
+        float phaseDeviation = modulator->modIndex * (modVal / 32767.0f) * scalingConstant;
         
         float perturbed = carrier->phase + phaseDeviation;
         perturbed = fmodf(perturbed, (float)carrier->tableLen);
@@ -91,10 +89,10 @@ int main(int argc, char const *argv[])
     wtSineDiscretize(wavetablePtr, 4096);
 
     Oscillator mainOscilator;
-    oscInit(&mainOscilator, wavetablePtr, 4096, 440.0f, 1, 44100.0f);
+    oscInit(&mainOscilator, wavetablePtr, 4096, 261.63f, 1, 44100.0f);
 
     Oscillator modulatorOscillator;
-    oscInit(&modulatorOscillator, wavetablePtr, 4096, 1980.0f, 5.0f, 44100.0f);
+    oscInit(&modulatorOscillator, wavetablePtr, 4096, 392.445f, 10.0f, 44100.0f);
 
     wtFmModulate(modulatedWavePtr, 44100, &mainOscilator, &modulatorOscillator);
     
