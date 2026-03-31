@@ -5,6 +5,10 @@
 #include "oscillator.h"
 #include "wav.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288 // Define M_PI with high precision
+#endif
+
 void wtSineDiscretize(int16_t* ptr, size_t length) {
     for (int i = 0; i < length; i++) {
         float theta = (2 * M_PI) * ((float)i / length);

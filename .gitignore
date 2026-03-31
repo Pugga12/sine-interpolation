@@ -2,3 +2,6 @@ a.out
 sine
 aNote.txt
 demo.wav
+build/
+CMakeCache.txt
+bin/
