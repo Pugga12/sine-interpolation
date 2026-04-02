@@ -38,11 +38,11 @@ fix16_t linInterp_fixed16(fix16_t* wtPtr, fix16_t x) {
 
 void wtFmModulate_fixed16(fix16_t* output, int32_t outputLength, OscillatorF16* carrier, OscillatorF16* modulator) {
     fix16_t tableLen = fix16_from_int(carrier->tableLen);
+    fix16_t scalingConstant = fix16_div(modulator->tableLen, TWO_PI_FLOAT);
 
     for (int i = 0; i < outputLength; i++) {
         fix16_t modVal = linInterp_fixed16(modulator->table, fix16_from_float(modulator->phase));
 
-        fix16_t scalingConstant = fix16_div(modulator->tableLen, TWO_PI_FLOAT);
         fix16_t deviation = fix16_mul(
             fix16_from_float(modulator->modIndex),
             fix16_mul(modVal, scalingConstant)
@@ -65,11 +65,10 @@ void wtFmModulate_fixed16(fix16_t* output, int32_t outputLength, OscillatorF16* 
 
 void fixed16ToInt16(int16_t* outputPtr, fix16_t* inputPtr, size_t len) {
     for (int i = 0; i < len; i++) {
-        int sampleInt = fix16_to_int(inputPtr[i]);
-        outputPtr[i] = (int16_t)(sampleInt * 32767);
+        float floatVal = fix16_to_float(inputPtr[i]);
+        outputPtr[i] = (int16_t)(floatVal * 32767.0f);
     }
 }
-
 
 int main(int argc, char const *argv[])
 {
