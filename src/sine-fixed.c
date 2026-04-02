@@ -69,3 +69,27 @@ void fixed16ToInt16(int16_t* outputPtr, fix16_t* inputPtr, size_t len) {
         outputPtr[i] = (int16_t)(sampleInt * 32767);
     }
 }
+
+
+int main(int argc, char const *argv[])
+{
+    fix16_t* wavetablePtr = (fix16_t*)malloc(sizeof(fix16_t) * 4096);
+    fix16_t* modulatedWavePtr = (fix16_t*)malloc(sizeof(fix16_t) * 44100);
+
+    wtSineDiscretize_fixed16(wavetablePtr, 4096);
+
+    OscillatorF16 mainOscillator;
+    oscInitF16(&mainOscillator, wavetablePtr, 4096, 261.63f, 1, 44100.0f);
+
+    OscillatorF16 modulatorOscillator;
+    oscInitF16(&modulatorOscillator, wavetablePtr, 4096, 392.445f, 10.0f, 44100.0f);
+
+    wtFmModulate_fixed16(modulatedWavePtr, 44100, &mainOscillator, &modulatorOscillator);
+
+    int16_t* wavPtr = (int16_t*)malloc(sizeof(int16_t) * 44100);
+
+    fixed16ToInt16(wavPtr, modulatedWavePtr, 44100);
+    writeWavMono("demo-fix.wav", wavPtr, 44100, 44100);
+
+    return 0;
+}

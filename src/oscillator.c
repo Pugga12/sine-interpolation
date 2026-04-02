@@ -20,7 +20,9 @@ void oscInit(Oscillator* osc, int16_t *table, size_t tableLen, float freq, float
 
 void oscF16IncreasePhase(OscillatorF16* oscillator) {
     oscillator->phase += oscillator->phaseIncrement;
-    if (oscillator->phase >= oscillator->tableLen) oscillator->phase -= oscillator->tableLen;
+    if (oscillator->phase >= oscillator->tableLen) {
+        oscillator->phase -= oscillator->tableLen;
+    } 
 }
 
 void oscInitF16(OscillatorF16* osc, fix16_t *table, int32_t tableLen, float freq, float mod_index, float sample_rate) {

@@ -31,8 +31,13 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/phase-mod-demo)
 
 # Assign the include directories
 include_directories(${INCLUDE_DIRS})
+set(USE_FIXED_POINT YES)
 
-set(SOURCE_FILES src/sine-fpu.c src/sine-fixed.c src/wav.c src/oscillator.c)
+if (USE_FIXED_POINT)
+    set(SOURCE_FILES src/sine-fixed.c src/adsr.c src/wav.c src/oscillator.c)
+else()
+    set(SOURCE_FILES src/sine-fpu.c src/adsr.c src/wav.c src/oscillator.c)
+endif()
 add_executable(phase-mod-demo ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE m libfixmath)
 target_include_directories(phase-mod-demo PRIVATE ${libfixmath_SOURCE_DIR}/libfixmath)
