@@ -28,6 +28,6 @@ void initADSR(ADSR* ptr, float attackTime, float releaseTime, float decayTime, f
 
 void reset(ADSR* ptr);
 
-float adsrCalculate(ADSR* ptr);
+float adsrCalculateLinear(ADSR* ptr);
 
 void setGate(ADSR* adsr, bool gate);

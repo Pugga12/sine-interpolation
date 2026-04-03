@@ -75,7 +75,7 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
         while (perturbed < 0) perturbed += carrier->tableLen;
 
         // interpolate to get modulated carrier value; store to outp
-        float amplitude = adsrCalculate(adsr);
+        float amplitude = adsrCalculateLinear(adsr);
         float outputVal = tableLinInterp(carrier->table, perturbed);
         output[i] = (int16_t)(outputVal * amplitude);
 

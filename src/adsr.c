@@ -27,7 +27,7 @@ static inline float linInterp(float b, float a2, float a1, float x) {
     return ((a2 - a1) * x) + b; // y = (a1-a2)x + b
 }
 
-float adsrCalculate(ADSR* ptr) {
+float adsrCalculateLinear(ADSR* ptr) {
     float timeElapsed = ptr->sampleCounter / ptr->sampleRate;
 
     if (ptr->gate && !ptr->prevGate) {
