@@ -5,3 +5,5 @@ demo.wav
 build/
 CMakeCache.txt
 bin/
+cmake-build-debug/
+.idea/

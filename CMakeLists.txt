@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 # Definitions
 set(PROJECT_NAME phase-mod-demo)
@@ -31,13 +31,14 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/phase-mod-demo)
 
 # Assign the include directories
 include_directories(${INCLUDE_DIRS})
-set(USE_FIXED_POINT NO)
+option(USE_FIXED_POINT "Use fixed point mathematics" OFF)
+set(COMMON_SOURCES src/wav.c src/adsr.c src/oscillator.c)
 
 if (USE_FIXED_POINT)
-    set(SOURCE_FILES src/sine-fixed.c src/adsr.c src/wav.c src/oscillator.c)
-else()
-    set(SOURCE_FILES src/sine-fpu.c src/adsr.c src/wav.c src/oscillator.c)
-endif()
-add_executable(phase-mod-demo ${SOURCE_FILES})
+    set(MAIN_FILE src/sine-fixed.c)
+else ()
+    set(MAIN_FILE src/sine-fpu.c)
+endif ()
+add_executable(phase-mod-demo ${COMMON_SOURCES} ${MAIN_FILE})
 target_link_libraries(${PROJECT_NAME} PRIVATE m libfixmath)
 target_include_directories(phase-mod-demo PRIVATE ${libfixmath_SOURCE_DIR}/libfixmath)

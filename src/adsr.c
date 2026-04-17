@@ -1,4 +1,5 @@
 #include "adsr.h"
+#include <assert.h>
 
 void initADSR(ADSR* ptr, float attackTime, float releaseTime, float decayTime, float sustainLevel, float sampleRate) {
     ptr->state = IDLE;
@@ -73,6 +74,10 @@ float adsrCalculateLinear(ADSR* ptr) {
             float releaseProgress = timeElapsed / releaseSconds;
             ptr->output = ptr->sustainLevel * (1.0f - releaseProgress);
             break;
+        case IDLE:
+            break;
+        default:
+            assert(0 && "Invalid ADSR state");
     }
 
     ptr->sampleCounter++;
