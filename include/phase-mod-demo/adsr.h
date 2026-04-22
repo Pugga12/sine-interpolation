@@ -22,15 +22,18 @@ typedef struct
     uint32_t sampleRate;
     uint32_t sampleCounter;
 
-    float aRatioCache;
-    float dRatioCache;
-    float rRatioCache;
+    float rA;
+    float rD;
+    float rR;
+    float y;
 } ADSR;
 
-bool initADSR(ADSR* ptr, float attackSeconds, float releaseSeconds, float decaySeconds, float sustainLevel, float sampleRate, bool precacheRatios);
+bool initADSR(ADSR* ptr, float attackSeconds, float releaseSeconds, float decaySeconds, float sustainLevel, uint32_t sampleRate);
 
 void reset(ADSR* ptr);
 
 float adsrCalculateLinear(ADSR* ptr);
 
 void setGate(ADSR* adsr, bool gate);
+
+float adsrCalculateExp(ADSR* adsr);

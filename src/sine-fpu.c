@@ -78,8 +78,11 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
         perturbed = fmodf(perturbed, (float)carrier->tableLen);
         while (perturbed < 0) perturbed += carrier->tableLen;
 
-        // interpolate to get modulated carrier value; store to outp
-        float amplitude = adsrCalculateLinear(adsr);
+        #ifdef EXPONENTIAL_ADSR
+            float amplitude = adsrCalculateExp(adsr);
+        #else
+            float amplitude = adsrCalculateLinear(adsr);
+        #endif
         float outputVal = tableLinInterp(carrier->table, perturbed);
         output[i] = (int16_t)(outputVal * amplitude);
 
@@ -114,7 +117,7 @@ int main(int argc, char const *argv[])
     oscInit(&modulatorOscillator, wavetablePtr, 4096, 392.445f, 5.0f, 44100.0f);
 
     ADSR adsr; 
-    bool adsrValid = initADSR(&adsr, MS_TO_S(200.0f), MS_TO_S(200.0f), MS_TO_S(500.0f), 0.25f, 44100, true);
+    bool adsrValid = initADSR(&adsr, MS_TO_S(50.0f), MS_TO_S(100.0f), MS_TO_S(50.0f), 0.25f, 44100);
     if (!adsrValid) {
         return -1;
     }
