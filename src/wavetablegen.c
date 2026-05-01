@@ -10,7 +10,7 @@
 #include "constants.h"
 #include <stdbool.h>
 
-bool wtSineDiscretize(int16_t* ptr, size_t length) {
+bool wtSine(int16_t* ptr, size_t length) {
     if (ptr == NULL || length == 0) {
         assert(0 && "wtSineDiscretize() called with invalid args");
         return false;
@@ -48,5 +48,22 @@ bool wtSawBL(int16_t* table, size_t length, uint32_t maxHarmonics) {
 
     // wrap the table for sab
     table[length - 1] = table[0];
+    return true;
+}
+
+bool wtTriangle(int16_t* table, size_t length) {
+    if (table == NULL || length == 0) {
+        assert(0 && "wtTriangle() called with invalid args");
+        return false;
+    }
+
+    for (int i = 0; i < length; i++) {
+        float phase = (float)i / (float)length;
+        float a = 1.0f - 4.0f * fabsf(phase - 0.5f);
+
+        int16_t aInt = (int16_t)(a * 32767);
+        table[i] = aInt;
+    }
+
     return true;
 }

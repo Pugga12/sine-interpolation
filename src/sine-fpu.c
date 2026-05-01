@@ -76,16 +76,18 @@ void printPoints(int16_t* values, size_t length) {
 
 int main(int argc, char const *argv[])
 {
-    int16_t* wavetablePtr = (int16_t*)malloc(sizeof(int16_t) * WT_SIZE);
+    int16_t* sinePtr = (int16_t*)malloc(sizeof(int16_t) * WT_SIZE);
+    int16_t* trianglePtr = (int16_t*)malloc(sizeof(int16_t) * WT_SIZE);
     int16_t* modulatedWavePtr = (int16_t*)malloc(sizeof(int16_t) * 88200);
 
-    wtSineDiscretize(wavetablePtr, 4096);
+    wtSine(sinePtr, WT_SIZE);
+    wtTriangle(trianglePtr, WT_SIZE);
 
     Oscillator mainOscilator;
-    oscInit(&mainOscilator, wavetablePtr, 4096, 261.63f, 1, 44100.0f);
+    oscInit(&mainOscilator, sinePtr, 4096, 261.63f, 1, 44100.0f);
 
     Oscillator modulatorOscillator;
-    oscInit(&modulatorOscillator, wavetablePtr, 4096, 392.445f, 5.0f, 44100.0f);
+    oscInit(&modulatorOscillator, trianglePtr, 4096, 392.445f, 0.5f, 44100.0f);
 
     ADSR adsr; 
     bool adsrValid = initADSR(&adsr, MS_TO_S(50.0f), MS_TO_S(100.0f), MS_TO_S(50.0f), 0.25f, 44100);
@@ -96,9 +98,11 @@ int main(int argc, char const *argv[])
     wtFmModulate(modulatedWavePtr, 88200, &mainOscilator, &modulatorOscillator, &adsr);
     
 //    printPoints(modulatedWavePtr, 4096);
+    printPoints(trianglePtr, 4096);
     writeWavMono("demo.wav", modulatedWavePtr, 88200, 44100);
 
-    free(wavetablePtr);
+    free(sinePtr);
     free(modulatedWavePtr);
+    free(trianglePtr);
     return 0;
 }
