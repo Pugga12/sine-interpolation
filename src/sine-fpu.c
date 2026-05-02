@@ -12,12 +12,12 @@
 
 #define MS_TO_S(ms) (ms / 1000.0f)
 
-int16_t tableLinInterp(int16_t* wtPtr, float x) {
+float tableLinInterp(float* wtPtr, float x) {
     int i = (int)x;
-    int16_t a1 = wtPtr[i];
-    int16_t a2 = wtPtr[i + 1];
-    float decimal = x - i;
-    return (int16_t)(a1 + (decimal * (a2 - a1)));
+    float a1 = wtPtr[i];
+    float a2 = wtPtr[i + 1];
+    float decimal = x - (float)i;
+    return a1 + decimal * (a2 - a1);
 }
 
 /**
@@ -29,14 +29,14 @@ int16_t tableLinInterp(int16_t* wtPtr, float x) {
  * @param carrier The oscillator whose frequency will be modulated
  * @param modulator The oscillator that controls the modulation depth
  */
-void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Oscillator* modulator, ADSR* adsr) {
+void wtFmModulate(float* output, size_t outputLength, Oscillator* carrier, Oscillator* modulator, ADSR* adsr) {
     setGate(adsr, true);
 
     for (int i = 0; i < outputLength; i++) {
         float modVal = tableLinInterp(modulator->table, modulator->phase);
         
         float scalingConstant = modulator->tableLen / (2.0f * M_PI);
-        float phaseDeviation = modulator->modIndex * (modVal / 32767.0f) * scalingConstant;
+        float phaseDeviation = modulator->modIndex * modVal * scalingConstant;
 
         // modulate the carrier by adding the phase deviation to the accumulator value
         float perturbed = carrier->phase + phaseDeviation;
@@ -55,7 +55,7 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
             float amplitude = adsrCalculateLinear(adsr);
         #endif
         float outputVal = tableLinInterp(carrier->table, perturbed);
-        output[i] = (int16_t)(outputVal * amplitude);
+        output[i] = outputVal * amplitude;
 
         // increase accumulators
         oscIncreasePhase(carrier);
@@ -63,10 +63,10 @@ void wtFmModulate(int16_t* output, size_t outputLength, Oscillator* carrier, Osc
     }
 }
 
-void printPoints(int16_t* values, size_t length) {
+void printPoints(float* values, size_t length) {
     printf("i = [");
     for (int i = 0; i < length; i++) {
-        printf("(%i, %i)", i, values[i]);
+        printf("(%i, %.9f)", i, values[i]);
         if (!(i == length - 1)) {
             printf(",");
         }
@@ -76,9 +76,9 @@ void printPoints(int16_t* values, size_t length) {
 
 int main(int argc, char const *argv[])
 {
-    int16_t* sinePtr = (int16_t*)malloc(sizeof(int16_t) * WT_SIZE);
-    int16_t* trianglePtr = (int16_t*)malloc(sizeof(int16_t) * WT_SIZE);
-    int16_t* modulatedWavePtr = (int16_t*)malloc(sizeof(int16_t) * 88200);
+    float* sinePtr = malloc(sizeof(float) * WT_SIZE);
+    float* trianglePtr = malloc(sizeof(float) * WT_SIZE);
+    float* modulatedWavePtr = malloc(sizeof(float) * 88200);
 
     wtSine(sinePtr, WT_SIZE);
     wtTriangle(trianglePtr, WT_SIZE);
@@ -99,7 +99,8 @@ int main(int argc, char const *argv[])
     
 //    printPoints(modulatedWavePtr, 4096);
     printPoints(trianglePtr, 4096);
-    writeWavMono("demo.wav", modulatedWavePtr, 88200, 44100);
+    printPoints(sinePtr, 4096);
+    writeWavF32("demo-f32.wav", modulatedWavePtr, 88200, 44100);
 
     free(sinePtr);
     free(modulatedWavePtr);

@@ -8,7 +8,7 @@ void oscIncreasePhase(Oscillator* oscillator) {
     if (oscillator->phase >= oscillator->tableLen) oscillator->phase -= oscillator->tableLen;
 }
 
-void oscInit(Oscillator* osc, int16_t *table, size_t tableLen, float freq, float mod_index, float sample_rate) {
+void oscInit(Oscillator* osc, float *table, size_t tableLen, float freq, float mod_index, float sample_rate) {
     osc->table = table;
     osc->tableLen = tableLen;
     osc->phase = 0.0f;

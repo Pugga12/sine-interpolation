@@ -88,7 +88,7 @@ int main(int argc, char const *argv[])
     int16_t* wavPtr = (int16_t*)malloc(sizeof(int16_t) * 44100);
 
     fixed16ToInt16(wavPtr, modulatedWavePtr, 44100);
-    writeWavMono("demo-fix.wav", wavPtr, 44100, 44100);
+    writeWavS16("demo-fix.wav", wavPtr, 44100, 44100);
 
     return 0;
 }
