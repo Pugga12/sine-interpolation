@@ -1,4 +1,4 @@
-#include "adsr.h"
+#include "dsp/adsr.h"
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>

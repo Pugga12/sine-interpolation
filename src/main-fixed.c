@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "oscillator.h"
-#include "wav.h"
+#include "dsp/oscillator.h"
+#include "../include/phase-mod-demo/io/wav.h"
 #include "fix16.h"
 #include "constants.h"
 
@@ -88,7 +88,7 @@ int main(int argc, char const *argv[])
     int16_t* wavPtr = (int16_t*)malloc(sizeof(int16_t) * 44100);
 
     fixed16ToInt16(wavPtr, modulatedWavePtr, 44100);
-    writeWavMono("demo-fix.wav", wavPtr, 44100, 44100);
+    writeWavS16("demo-fix.wav", wavPtr, 44100, 44100);
 
     return 0;
 }

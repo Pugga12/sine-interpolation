@@ -1,7 +1,7 @@
 //
 // Created by adama on 5/1/26.
 //
-#include "wavetablegen.h"
+#include "dsp/wavetablegen.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -10,7 +10,7 @@
 #include "constants.h"
 #include <stdbool.h>
 
-bool wtSine(int16_t* ptr, size_t length) {
+bool wtSine(float *ptr, size_t length) {
     if (ptr == NULL || length == 0) {
         assert(0 && "wtSineDiscretize() called with invalid args");
         return false;
@@ -18,16 +18,14 @@ bool wtSine(int16_t* ptr, size_t length) {
 
     for (int i = 0; i < length; i++) {
         float theta = (2 * M_PI) * ((float)i / length);
-        float a = sinf(theta);
-        int16_t aInt = (int16_t)(a * 32767);
-        ptr[i] = aInt;
+        ptr[i] = sinf(theta);
     }
 
     return true;
 }
 
 // TODO: Rewrite to use polyBLEP because the fourier series causses es ar
-bool wtSawBL(int16_t* table, size_t length, uint32_t maxHarmonics) {
+bool wtSawBL(float *table, size_t length, uint32_t maxHarmonics) {
     if (table == NULL || length == 0 || maxHarmonics == 0) {
         assert(0 && "wtSawBL() called with invalid args");
         return false;
@@ -43,15 +41,14 @@ bool wtSawBL(int16_t* table, size_t length, uint32_t maxHarmonics) {
 
         x *= TWO_OVER_PI;
 
-        table[i] = (int16_t)(x * 32767);
+        table[i] = x;
     }
 
-    // wrap the table for sab
     table[length - 1] = table[0];
     return true;
 }
 
-bool wtTriangle(int16_t* table, size_t length) {
+bool wtTriangle(float *table, size_t length) {
     if (table == NULL || length == 0) {
         assert(0 && "wtTriangle() called with invalid args");
         return false;
@@ -59,10 +56,7 @@ bool wtTriangle(int16_t* table, size_t length) {
 
     for (int i = 0; i < length; i++) {
         float phase = (float)i / (float)length;
-        float a = 1.0f - 4.0f * fabsf(phase - 0.5f);
-
-        int16_t aInt = (int16_t)(a * 32767);
-        table[i] = aInt;
+        table[i] = 1.0f - 4.0f * fabsf(phase - 0.5f);
     }
 
     return true;

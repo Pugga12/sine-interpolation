@@ -5,7 +5,7 @@
 
 typedef struct
 {
-    int16_t* table;
+    float* table;
     size_t tableLen;
     float phase;
     float phaseIncrement;
@@ -16,7 +16,7 @@ typedef struct
 
 void oscIncreasePhase(Oscillator* oscillator);
 
-void oscInit(Oscillator* osc, int16_t *table, size_t tableLen, float freq, float mod_index, float sample_rate);
+void oscInit(Oscillator* osc, float *table, size_t tableLen, float freq, float mod_index, float sample_rate);
 
 typedef struct
 {

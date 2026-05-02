@@ -33,12 +33,14 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/phase-mod-demo)
 include_directories(${INCLUDE_DIRS})
 option(USE_FIXED_POINT "Use fixed point mathematics" OFF)
 option(EXPONENTIAL_ADSR "Use exponential/log adsr calculations" ON)
-set(COMMON_SOURCES src/wav.c src/adsr.c src/oscillator.c)
+set(COMMON_SOURCES src/io/wav.c src/dsp/adsr.c src/dsp/oscillator.c
+        src/synth/mixer.c
+        src/synth/voice.c)
 
 if (USE_FIXED_POINT)
-    set(MAIN_FILE src/sine-fixed.c)
+    set(MAIN_FILE src/main-fixed.c)
 else ()
-    set(MAIN_FILE src/sine-fpu.c src/wavetablegen.c)
+    set(MAIN_FILE src/main-fpu.c src/dsp/wavetablegen.c)
 endif ()
 add_executable(phase-mod-demo ${COMMON_SOURCES} ${MAIN_FILE})
 target_link_libraries(${PROJECT_NAME} PRIVATE m libfixmath)
