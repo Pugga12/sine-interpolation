@@ -14,8 +14,10 @@ static Oscillator o1C;
 static Oscillator o1M;
 static Oscillator o2C;
 static Oscillator o2M;
-static ADSR a1;
-static ADSR a2;
+static ADSR a1Amp;
+static ADSR a2Amp;
+static ADSR a1Mod;
+static ADSR a2Mod;
 
 static float* ob1;
 static float* ob2;
@@ -36,18 +38,21 @@ void printPoints(float* values, size_t length) {
 }
 
 void initEverything() {
-    oscInit(&o1C, trianglePtr, WT_SIZE, 32.7f, 1, 44100.0f);
-    oscInit(&o1M, sinePtr, WT_SIZE, 49.05f, 2.0f, 44100.0f);
+    oscInit(&o1C, sinePtr, WT_SIZE, 55.0f, 1, 44100.0f);
+    oscInit(&o1M, sinePtr, WT_SIZE, 55.0f, 4.0f, 44100.0f);
     oscInit(&o2C, sinePtr, WT_SIZE, 261.63f, 1, 44100.0f);
-    oscInit(&o2M, sinePtr, WT_SIZE, 523.26f, 2.0f, 44100.0f);
+    oscInit(&o2M, sinePtr, WT_SIZE, 3662.82f, 1.5f, 44100.0f);
 
-    initADSR(&a1, MS_TO_S(500), MS_TO_S(250), MS_TO_S(25), 0.5, 44100.0f);
-    initADSR(&a2, MS_TO_S(500), MS_TO_S(250), MS_TO_S(25), 0.5, 44100.0f);
-    initVoice(&voices[0], &o1C, &o1M, &a1, ob1, 88200);
-    initVoice(&voices[1], &o2C, &o2M, &a2, ob2, 88200);
+    initADSR(&a1Amp, MS_TO_S(10), MS_TO_S(100), MS_TO_S(400), 0.5, 44100.0f);
+    initADSR(&a2Amp, MS_TO_S(5), MS_TO_S(200), 1.5f, 0.2f, 44100.0f);
+    initADSR(&a1Mod, MS_TO_S(2), MS_TO_S(100), MS_TO_S(150), 0.1f, 44100.0f);
+    initADSR(&a2Mod, MS_TO_S(1), MS_TO_S(1), MS_TO_S(50), 0.0f, 44100.0f);
 
-    voiceModulate(&voices[0], 80000);
-    voiceModulate(&voices[1], 75000);
+    initVoice(&voices[0], &o1C, &o1M, &a1Amp, ob1, 88200, &a1Mod);
+    initVoice(&voices[1], &o2C, &o2M, &a2Amp, ob2, 88200, &a2Mod);
+
+    voiceModulate(&voices[0], 22050);
+    voiceModulate(&voices[1], 44100);
 }
 
 int main(int argc, char const *argv[])

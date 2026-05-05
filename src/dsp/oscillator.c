@@ -6,7 +6,7 @@
 #include "dsp/noise.h"
 
 void oscIncreasePhase(Oscillator* oscillator) {
-    const float jitter = 1.0f + (gaussianRandom() * 0.00001f);
+    const float jitter = 1.0f + (gaussianRandom() * 0.001f);
     oscillator->phase += (oscillator->phaseIncrement * jitter);
     if (oscillator->phase >= oscillator->tableLen) oscillator->phase -= oscillator->tableLen;
 }

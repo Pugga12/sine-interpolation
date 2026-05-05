@@ -4,19 +4,20 @@
 #include "synth/voice.h"
 #include <stdbool.h>
 #include <assert.h>
-#include "constants.h"
+#include "dsp/adsr.h"
 #include "math.h"
 #include "dsp/wavetablegen.h"
 
-bool initVoice(Voice *v, Oscillator* carrier, Oscillator* modulator, ADSR* adsr, float* outBuffer, size_t bufferSize) {
-    if (!v || !carrier || !modulator || !adsr || !outBuffer || bufferSize == 0) {
-        assert(0 && "Invalid arguments passed to initVoice().l.");
+bool initVoice(Voice *v, Oscillator* carrier, Oscillator* modulator, ADSR* ampAdsr, float* outBuffer, size_t bufferSize, ADSR* modAdsr) {
+    if (!v || !carrier || !modulator || !ampAdsr || !modAdsr || !outBuffer || bufferSize == 0) {
+        assert(0 && "Invalid arguments passed to initVoice()");
         return false;
     }
 
     v->carrier = carrier;
     v->modulator = modulator;
-    v->adsr = adsr;
+    v->ampAdsr = ampAdsr;
+    v->modAdsr = modAdsr;
     v->bufferSize = bufferSize;
     v->outBuffer = outBuffer;
     v->on = true;
@@ -41,32 +42,33 @@ static float bitCrush(const float x, const uint8_t precision) {
 }
 
 void voiceModulate(Voice* v, uint64_t releaseAt) {
-    setGate(v->adsr, true);
-    const float scalingConstant = v->modulator->tableLen / (1.0f * M_PI);
-    const float deviationMultiplier = v->modulator->modIndex * scalingConstant;
+    setGate(v->ampAdsr, true);
+    const float scalingConstant = (float)v->modulator->tableLen / 8;
 
     for (int i = 0; i < v->bufferSize; i++) {
+        #ifdef EXPONENTIAL_ADSR
+            const float ampEnv = adsrCalculateExp(v->ampAdsr);
+            const float modEnv = adsrCalculateExp(v->modAdsr);
+        #else
+                const float ampEnv = adsrCalculateLinear(v->adsr);
+        #endif
         const float modVal = v->modulator->table[(int)v->modulator->phase];
         const float qModVal = bitCrush(modVal, 8);
+        const float currentModDepth = (v->modulator->modIndex * scalingConstant) * modEnv;
 
         // modulate the carrier by adding the phase deviation to the accumulator value
-        float perturbed = v->carrier->phase + (qModVal * deviationMultiplier);
+        float perturbed = v->carrier->phase + (qModVal * currentModDepth);
 
         if (i == releaseAt) {
-            setGate(v->adsr, false);
+            setGate(v->ampAdsr, false);
         }
 
         // phase accumulator wrapping
         perturbed = fmodf(perturbed, (float)v->carrier->tableLen);
         while (perturbed < 0) perturbed += v->carrier->tableLen;
 
-#ifdef EXPONENTIAL_ADSR
-        const float amplitude = adsrCalculateExp(v->adsr);
-#else
-        const float amplitude = adsrCalculateLinear(v->adsr);
-#endif
         const float qPerturbation = bitCrush(perturbed, 8);
-        v->outBuffer[i] = v->carrier->table[(int)qPerturbation] * amplitude;
+        v->outBuffer[i] = v->carrier->table[(int)qPerturbation] * ampEnv;
 
         // increase accumulators
         oscIncreasePhase(v->carrier);
