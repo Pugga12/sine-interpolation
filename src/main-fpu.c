@@ -36,10 +36,10 @@ void printPoints(float* values, size_t length) {
 }
 
 void initEverything() {
-    oscInit(&o1C, sinePtr, 4096, 440.0f, 1, 44100.0f);
-    oscInit(&o1M, trianglePtr, 4096, 880.0f, 0.5f, 44100.0f);
-    oscInit(&o2C, sinePtr, 4096, 392.9f, 1, 44100.0f);
-    oscInit(&o2M, sinePtr, 4096, 784.0f, 15.0f, 44100.0f);
+    oscInit(&o1C, sinePtr, WT_SIZE, 440.0f, 1, 44100.0f);
+    oscInit(&o1M, trianglePtr, WT_SIZE, 880.0f, 0.5f, 44100.0f);
+    oscInit(&o2C, sinePtr, WT_SIZE, 392.9f, 1, 44100.0f);
+    oscInit(&o2M, sinePtr, WT_SIZE, 784.0f, 15.0f, 44100.0f);
 
     initADSR(&a1, MS_TO_S(600), MS_TO_S(250), MS_TO_S(25), 0.5, 44100.0f);
     initADSR(&a2, MS_TO_S(500), MS_TO_S(250), MS_TO_S(25), 0.5, 44100.0f);
@@ -58,8 +58,8 @@ int main(int argc, char const *argv[])
     ob2 = malloc(sizeof(float) * 88200);
     float* obFinal = malloc(sizeof(float) * 88200);
 
-    wtSine(sinePtr, WT_SIZE);
-    wtTriangle(trianglePtr, WT_SIZE);
+    wavetableGenSine(sinePtr, WT_SIZE);
+    wavetableGenTriangle(trianglePtr, WT_SIZE);
     initEverything();
 
     mix(voices, 2, obFinal, 88200);

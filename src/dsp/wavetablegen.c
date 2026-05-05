@@ -10,7 +10,7 @@
 #include "constants.h"
 #include <stdbool.h>
 
-bool wtSine(float *ptr, size_t length) {
+bool wavetableGenSine(float *ptr, size_t length) {
     if (ptr == NULL || length == 0) {
         assert(0 && "wtSineDiscretize() called with invalid args");
         return false;
@@ -24,8 +24,8 @@ bool wtSine(float *ptr, size_t length) {
     return true;
 }
 
-// TODO: Rewrite to use polyBLEP because the fourier series causses es ar
-bool wtSawBL(float *table, size_t length, uint32_t maxHarmonics) {
+// TODO: Rewrite to use polyBLEP because the fourier series generates bad points at the discontinuity 
+bool wavetableGenBLSaw(float *table, size_t length, uint32_t maxHarmonics) {
     if (table == NULL || length == 0 || maxHarmonics == 0) {
         assert(0 && "wtSawBL() called with invalid args");
         return false;
@@ -48,7 +48,7 @@ bool wtSawBL(float *table, size_t length, uint32_t maxHarmonics) {
     return true;
 }
 
-bool wtTriangle(float *table, size_t length) {
+bool wavetableGenTriangle(float *table, size_t length) {
     if (table == NULL || length == 0) {
         assert(0 && "wtTriangle() called with invalid args");
         return false;
