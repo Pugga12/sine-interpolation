@@ -44,6 +44,7 @@ static float bitCrush(const float x, const uint8_t precision) {
 void voiceModulate(Voice* v, uint64_t releaseAt) {
     setGate(v->ampAdsr, true);
     setGate(v->modAdsr, true);
+    const float len = (float)v->carrier->tableLen;
     const float scalingConstant = (float)v->modulator->tableLen / 8;
 
     for (int i = 0; i < v->bufferSize; i++) {
@@ -66,8 +67,7 @@ void voiceModulate(Voice* v, uint64_t releaseAt) {
         }
 
         // phase accumulator wrapping
-        perturbed = fmodf(perturbed, (float)v->carrier->tableLen);
-        while (perturbed < 0) perturbed += v->carrier->tableLen;
+        perturbed -= len * floorf(perturbed / len);
 
         const float qPerturbation = bitCrush(perturbed, 8);
         v->outBuffer[i] = v->carrier->table[(int)qPerturbation] * ampEnv;

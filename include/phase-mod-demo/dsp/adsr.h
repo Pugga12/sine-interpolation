@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define MS_TO_S(ms) (ms / 1000.0f)
+
 enum ADSRState {
     IDLE,
     ATTACK,
@@ -28,6 +30,13 @@ typedef struct
     float y;
 } ADSR;
 
+typedef struct {
+    float attackTime;
+    float decayTime;
+    float sustainLevel;
+    float releaseTime;
+} Envelope;
+
 /**
  * Initialize the ADSR struct
  *
@@ -40,6 +49,8 @@ typedef struct
  * @returns true if successfully created, false if parameters are invalid
  */
 bool initADSR(ADSR* ptr, float attackSeconds, float releaseSeconds, float decaySeconds, float sustainLevel, uint32_t sampleRate);
+
+bool envStructToAdsr(ADSR* ptr, Envelope* env, float sampleRate);
 
 /// Resets the ADSR state machine
 void reset(ADSR* ptr);

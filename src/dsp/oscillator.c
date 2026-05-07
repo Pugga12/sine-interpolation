@@ -6,8 +6,8 @@
 #include "dsp/noise.h"
 
 void oscIncreasePhase(Oscillator* oscillator) {
-    const float jitter = 1.0f + (gaussianRandom() * 0.001f);
-    oscillator->phase += (oscillator->phaseIncrement * jitter);
+    // const float jitter = 1.0f + (gaussianRandom() * 0.001f);
+    oscillator->phase += oscillator->phaseIncrement;
     if (oscillator->phase >= oscillator->tableLen) oscillator->phase -= oscillator->tableLen;
 }
 
@@ -19,6 +19,12 @@ void oscInit(Oscillator* osc, float *table, size_t tableLen, float freq, float m
     osc->modIndex = modIndex;
     osc->phaseIncrement = ((float)tableLen * freq) / sampleRate;
     osc->sampleRate = sampleRate;
+}
+
+void oscUpdateFrequency(Oscillator *osc, float newFreq) {
+    osc->phase = 0.0f;
+    osc->oscillatorFrequency = newFreq;
+    osc->phaseIncrement = ((float)osc->tableLen * newFreq) / osc->sampleRate;
 }
 
 void oscF16IncreasePhase(OscillatorF16* oscillator) {

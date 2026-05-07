@@ -26,7 +26,7 @@ target_compile_definitions(libfixmath PRIVATE
     # FIXMATH_OPTIMIZE_8BIT
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include paths
@@ -39,7 +39,10 @@ option(EXPONENTIAL_ADSR "Use exponential/log adsr calculations" ON)
 set(COMMON_SOURCES src/io/wav.c src/dsp/adsr.c src/dsp/oscillator.c
         src/synth/mixer.c
         src/synth/voice.c
-        src/dsp/noise.cpp)
+        src/dsp/noise.cpp
+        src/synth/SynthVoice.cpp
+        src/synth/VoiceManager.cpp
+)
 
 if (USE_FIXED_POINT)
     set(MAIN_FILE src/main-fixed.c)

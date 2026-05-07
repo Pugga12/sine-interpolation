@@ -7,8 +7,6 @@
 #include <stdbool.h>
 #include "synth/voice.h"
 #include "synth/mixer.h"
-#define MS_TO_S(ms) (ms / 1000.0f)
-
 
 static Oscillator o1C;
 static Oscillator o1M;

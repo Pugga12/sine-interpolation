@@ -36,6 +36,8 @@ void oscIncreasePhase(Oscillator* oscillator);
  */
 void oscInit(Oscillator* osc, float *table, size_t tableLen, float freq, float modIndex, float sampleRate);
 
+void oscUpdateFrequency(Oscillator* osc, float newFreq);
+
 typedef struct
 {
     fix16_t* table;

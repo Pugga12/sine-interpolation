@@ -48,6 +48,10 @@ bool initADSR(ADSR* ptr, float attackSeconds, float releaseSeconds, float decayS
     return true;
 }
 
+bool envStructToAdsr(ADSR* ptr, Envelope* env, float sampleRate) {
+    return initADSR(ptr, env->attackTime, env->releaseTime, env->decayTime, env->sustainLevel, (uint32_t)sampleRate);
+}
+
 void reset(ADSR* ptr) {
     ptr->state = IDLE;
     ptr->gate = false;
@@ -159,4 +163,8 @@ float adsrCalculateExp(ADSR* adsr) {
     adsr->sampleCounter++;
     adsr->prevGate = adsr->gate;
     return adsr->y;
+}
+
+float adsrGetAtSample(ADSR* adsr, uint32_t sampleNo) {
+    
 }
