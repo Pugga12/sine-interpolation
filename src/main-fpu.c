@@ -39,14 +39,14 @@ void printPoints(float* values, size_t length) {
 
 void initEverything() {
     oscInit(&o1C, sinePtr, WT_SIZE, 55.0f, 1, 44100.0f);
-    oscInit(&o1M, sinePtr, WT_SIZE, 55.0f, 4.0f, 44100.0f);
+    oscInit(&o1M, sinePtr, WT_SIZE, 55.0f, 0.001f, 44100.0f);
     oscInit(&o2C, sinePtr, WT_SIZE, 261.63f, 1, 44100.0f);
-    oscInit(&o2M, sinePtr, WT_SIZE, 3662.82f, 1.5f, 44100.0f);
+    oscInit(&o2M, sinePtr, WT_SIZE, 3662.82f, 0.001f, 44100.0f);
 
     initADSR(&a1Amp, MS_TO_S(10), MS_TO_S(100), MS_TO_S(400), 0.5, 44100.0f);
     initADSR(&a2Amp, MS_TO_S(5), MS_TO_S(200), 1.5f, 0.2f, 44100.0f);
     initADSR(&a1Mod, MS_TO_S(2), MS_TO_S(100), MS_TO_S(150), 0.1f, 44100.0f);
-    initADSR(&a2Mod, MS_TO_S(1), MS_TO_S(1), MS_TO_S(50), 0.0f, 44100.0f);
+    initADSR(&a2Mod, MS_TO_S(10), MS_TO_S(1), MS_TO_S(50), 0.0f, 44100.0f);
 
     initVoice(&voices[0], &o1C, &o1M, &a1Amp, ob1, 88200, &a1Mod);
     initVoice(&voices[1], &o2C, &o2M, &a2Amp, ob2, 88200, &a2Mod);

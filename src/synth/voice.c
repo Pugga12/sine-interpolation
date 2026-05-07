@@ -43,6 +43,7 @@ static float bitCrush(const float x, const uint8_t precision) {
 
 void voiceModulate(Voice* v, uint64_t releaseAt) {
     setGate(v->ampAdsr, true);
+    setGate(v->modAdsr, true);
     const float scalingConstant = (float)v->modulator->tableLen / 8;
 
     for (int i = 0; i < v->bufferSize; i++) {
@@ -61,6 +62,7 @@ void voiceModulate(Voice* v, uint64_t releaseAt) {
 
         if (i == releaseAt) {
             setGate(v->ampAdsr, false);
+            setGate(v->modAdsr, false);
         }
 
         // phase accumulator wrapping
