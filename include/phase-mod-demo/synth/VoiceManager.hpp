@@ -18,9 +18,12 @@ private:
 	std::array<SynthVoice, 8> voices;
 
 	uint32_t maxBlock = 0;
+	uint32_t maxEventTimecode = 0;
 	float sr;
+
+	void initPrintDbg();
 public:
-	VoiceManager(std::vector<TimedEvent> *timedEvents,float* modTable,float* carrierTable, float sr, size_t tableSize);
+	VoiceManager(std::vector<TimedEvent>& timedEvents,float* modTable,float* carrierTable, float sr, size_t tableSize);
 
 	bool go(float* outputBuffer, size_t outputSize);
 };

@@ -76,6 +76,8 @@ class SynthVoice {
             modEnv{},
             sampleRate(44100),
             cToMRatio(1)
-            {}
+        {
+            events.reserve(8);
+        }
 };
 

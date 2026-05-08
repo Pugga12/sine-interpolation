@@ -8,7 +8,7 @@ extern "C" {
 }
 
 static float noteToFrequency(uint32_t note) {
-	return 440.0f * std::pow(2, (note - 69) / 12);
+	return 440.0f * std::pow(2.0f, (note - 69.0f) / 12.0f);
 }
 
 void SynthVoice::init(Program *program, float *modTable, float *carrierTable, float sr, size_t tableSize) {
@@ -24,7 +24,7 @@ void SynthVoice::noteOn(uint32_t midiNote) {
 	const float newFrequency = noteToFrequency(midiNote);
 
 	oscUpdateFrequency(&carrier, newFrequency);
-	oscUpdateFrequency(&modulator, newFrequency * 1.5f);
+	oscUpdateFrequency(&modulator, newFrequency * cToMRatio);
 
 	reset(&ampEnv);
 	reset(&modEnv);
