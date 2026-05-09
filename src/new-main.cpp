@@ -36,7 +36,9 @@ int main() {
 	wavetableGenSine(sinePtr, 4096);
 
     MidiProcessor mp;
-    mp.load("Hava Nagila.mid");
+    if(!mp.load("Minuet in G.mid")) {
+        return -2;
+    }
     mp.convert();
 
 	VoiceManager vm(mp.getEvents(), sinePtr, sinePtr, 44100.0f, 4096);

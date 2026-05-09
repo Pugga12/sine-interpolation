@@ -3,12 +3,15 @@
 #include "synth/VoiceManager.hpp"
 #include <algorithm>
 #include "synth/MidiPreprocessor.hpp"
+#include <iostream>
 
 bool MidiProcessor::load(const std::string& filename)
 {
     if (!midiData.read(filename)) {
         return false;
     }
+
+    this->filename = filename;
 
     midiData.doTimeAnalysis();
     midiData.linkNotePairs();
@@ -70,6 +73,8 @@ void MidiProcessor::convert()
             return a.voiceId < b.voiceId;
         }
     );
+
+    printPreprocessorStats();
 }
 
 std::vector<TimedEvent>& MidiProcessor::getEvents()
@@ -114,4 +119,10 @@ uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, u
     voices[victim].pitch = pitch;
 
     return victim;
+}
+void MidiProcessor::printPreprocessorStats()
+{
+    std::cout << "=== MIDI File " << filename << " Preprocessing ===" << "\n";
+    std::cout << "Events in MIDI file: " << midiData[0].size() << "\n";
+    std::cout << "Events Processed: " << processedEvents.size() << " (incl. " << reassignments << " voice reassignments" << "\n";
 }
