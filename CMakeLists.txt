@@ -35,6 +35,16 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/phase-mod-demo)
 # Assign the include directories
 include_directories(${INCLUDE_DIRS})
 option(EXPONENTIAL_ADSR "Use exponential/log adsr calculations" ON)
+
+set(MIDIFILE_SOURCES
+    src/midifile/Options.cpp
+    src/midifile/Binasc.cpp
+    src/midifile/MidiEvent.cpp
+    src/midifile/MidiEventList.cpp
+    src/midifile/MidiFile.cpp
+    src/midifile/MidiMessage.cpp
+)
+
 set(COMMON_SOURCES src/io/wav.c src/dsp/adsr.c src/dsp/oscillator.c
         src/synth/mixer.c
         src/synth/voice.c
@@ -42,12 +52,13 @@ set(COMMON_SOURCES src/io/wav.c src/dsp/adsr.c src/dsp/oscillator.c
         src/synth/SynthVoice.cpp
         src/synth/VoiceManager.cpp
         src/dsp/wavetablegen.c
+        src/synth/MidiPreprocessor.cpp
 )
 
 set(MAIN_FILE src/new-main.cpp)
-add_executable(phase-mod-demo ${COMMON_SOURCES} ${MAIN_FILE})
+add_executable(phase-mod-demo ${COMMON_SOURCES} ${MAIN_FILE} ${MIDIFILE_SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE m libfixmath)
-target_include_directories(phase-mod-demo PRIVATE ${libfixmath_SOURCE_DIR}/libfixmath)
+target_include_directories(phase-mod-demo PRIVATE ${libfixmath_SOURCE_DIR}/libfixmath include/midifile)
 if(EXPONENTIAL_ADSR)
     target_compile_definitions(phase-mod-demo PRIVATE EXPONENTIAL_ADSR)
 endif ()

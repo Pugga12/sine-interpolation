@@ -66,15 +66,14 @@ void SynthVoice::renderInner(uint32_t start, uint32_t end, float* outputBuffer) 
 
 		const float modVal = modulator.table[static_cast<int>(modulator.phase)];
 
-		const float qModVal = bitCrush(modVal, 8);
 		const float currentModDepth = (modulator.modIndex * scalingConstant) * modEnvVal;
 
-		float perturbed = carrier.phase + (qModVal * currentModDepth);
+		float perturbed = carrier.phase + (modVal * currentModDepth);
 
-		perturbed -= len * floorf(perturbed / len);
+		float invLen = 1.0f / len;
+		perturbed -= len * (float)((int)(perturbed * invLen));
 
-		const float qPerturbation = bitCrush(perturbed, 8);
-		outputBuffer[i] += carrier.table[static_cast<int>(qPerturbation)] * ampEnvVal; 
+		outputBuffer[i] += carrier.table[static_cast<int>(perturbed)] * ampEnvVal;
 
 		oscIncreasePhase(&carrier);
 		oscIncreasePhase(&modulator);

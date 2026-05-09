@@ -15,7 +15,7 @@ struct TimedEvent {
 class VoiceManager {
 private:
 	std::vector<VoiceEvent> events;
-	std::array<SynthVoice, 8> voices;
+	std::array<SynthVoice, 24> voices;
 
 	uint32_t maxBlock = 0;
 	uint32_t maxEventTimecode = 0;

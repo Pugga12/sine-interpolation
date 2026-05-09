@@ -9,7 +9,7 @@
 #include "synth/SynthVoice.hpp"
 
 constinit Program PRG_DEFAULT_BASS {
-    0.000001,
+    1.5,
     12,
     {
         MS_TO_S(10),
@@ -128,8 +128,6 @@ bool VoiceManager::go(float* outputBuffer, size_t outputSize) {
     }
 
     for (int i = 0; i < outputSize; i++) {
-        
-
         outputBuffer[i] = std::tanhf(outputBuffer[i] * 0.1f);
     }
 

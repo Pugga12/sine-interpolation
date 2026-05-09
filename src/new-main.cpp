@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include "synth/VoiceManager.hpp"
+#include "synth/MidiPreprocessor.hpp"
 
 extern "C" {
 	#include "dsp/wavetablegen.h"
@@ -31,14 +32,20 @@ std::vector<TimedEvent> create_voice_ladder_test() {
 
 int main() {
 	float* sinePtr = static_cast<float*>(malloc(sizeof(float) * 4096));
-	float* outputPtr = static_cast<float*>(malloc(sizeof(float) * 441000));
+	float* outputPtr = static_cast<float*>(malloc(sizeof(float) * 2072700));
 	wavetableGenSine(sinePtr, 4096);
-	std::vector<TimedEvent> events = create_voice_ladder_test();
- 
-	VoiceManager vm(events, sinePtr, sinePtr, 44100.0f, 4096);
-	vm.go(outputPtr, 441000);
+
+    MidiProcessor mp;
+    mp.load("Hava Nagila.mid");
+    mp.convert();
+
+	VoiceManager vm(mp.getEvents(), sinePtr, sinePtr, 44100.0f, 4096);
+	if (!vm.go(outputPtr, 2072700)) {
+        std::printf("Invalid output size");
+        return -1;
+    }
     char* str = "new.wav";
-    writeWavF32(str, outputPtr, 441000, 44100);
+    writeWavF32(str, outputPtr, 2028600, 44100);
 
 
 	free(sinePtr);
