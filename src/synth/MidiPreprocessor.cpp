@@ -123,6 +123,6 @@ uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, u
 void MidiProcessor::printPreprocessorStats()
 {
     std::cout << "=== MIDI File " << filename << " Preprocessing ===" << "\n";
-    std::cout << "Events in MIDI file: " << midiData[0].size() << "\n";
-    std::cout << "Events Processed: " << processedEvents.size() << " (incl. " << reassignments << " voice reassignments" << "\n";
+    std::cout << "Total events in MIDI file: " << midiData[0].size() << "\n";
+    std::cout << "Note Events Processed: " << processedEvents.size() << " (incl. " << reassignments << " voice reassignments)" << "\n";
 }

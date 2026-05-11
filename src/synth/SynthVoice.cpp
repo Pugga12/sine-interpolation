@@ -13,10 +13,11 @@ static float noteToFrequency(uint32_t note) {
 
 void SynthVoice::init(Program *program, float *modTable, float *carrierTable, float sr, size_t tableSize) {
 	oscInit(&carrier, carrierTable, tableSize, 55.0f, 1, sr);
-	oscInit(&modulator, modTable, tableSize, 82.5f, 0.001f, sr);
+	oscInit(&modulator, modTable, tableSize, 82.5f, program->modIndex, sr);
 
 	envStructToAdsr(&ampEnv, &program->ampEnv, sr);
 	envStructToAdsr(&modEnv, &program->ampEnv, sr);
+	cToMRatio = program->cToMRatio;
 }
 
 void SynthVoice::noteOn(uint32_t midiNote) {

@@ -9,8 +9,8 @@
 #include "synth/SynthVoice.hpp"
 
 constinit Program PRG_DEFAULT_BASS {
-    1.5,
-    12,
+    2,
+    0.0001,
     {
         MS_TO_S(10),
         MS_TO_S(400),
@@ -18,7 +18,7 @@ constinit Program PRG_DEFAULT_BASS {
         MS_TO_S(500)
     },
     {
-        MS_TO_S(2),
+        MS_TO_S(10),
         MS_TO_S(50),
         0.1,
         MS_TO_S(500)

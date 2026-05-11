@@ -60,7 +60,7 @@ void reset(ADSR* ptr);
  * @par It is recommended to use @link adsrCalculateExp instead, as it is more realistic
  * @par This must be called once per sample calculated
  *
- * @param ptr Pointer to ADSR struct
+ * @param ptr Pointer to ADSR struct    
  * @returns ADSR amplitude, from 0.0 to 1.0
  */
 float adsrCalculateLinear(ADSR* ptr);

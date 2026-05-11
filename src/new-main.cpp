@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include "synth/VoiceManager.hpp"
 #include "synth/MidiPreprocessor.hpp"
+#include "Options.h"
 
 extern "C" {
 	#include "dsp/wavetablegen.h"
@@ -30,13 +31,16 @@ std::vector<TimedEvent> create_voice_ladder_test() {
     return events;
 }
 
-int main() {
+int main(int argc, char** argv) {
+    smf::Options options;
+    options.process(argc, argv);
 	float* sinePtr = static_cast<float*>(malloc(sizeof(float) * 4096));
 	float* outputPtr = static_cast<float*>(malloc(sizeof(float) * 2072700));
 	wavetableGenSine(sinePtr, 4096);
 
     MidiProcessor mp;
-    if(!mp.load("Minuet in G.mid")) {
+    if (options.getArgCount() == 0) return -3;
+    if(!mp.load(options.getArg(1))) {
         return -2;
     }
     mp.convert();

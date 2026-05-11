@@ -45,6 +45,7 @@ bool initADSR(ADSR* ptr, float attackSeconds, float releaseSeconds, float decayS
     ptr->rD = 0.0f;
     ptr->rR = 0.0f;
     ptr->y = 0.0f;
+    cacheRatios(ptr);
     return true;
 }
 
@@ -118,7 +119,7 @@ float adsrCalculateLinear(ADSR* ptr) {
 float adsrCalculateExp(ADSR* adsr) {
     if (adsr->gate && !adsr->prevGate) {
         adsr->state = ATTACK;
-        cacheRatios(adsr);
+//        cacheRatios(adsr);
         adsr->sampleCounter = 0;
         adsr->y = 0.0f;
     }
