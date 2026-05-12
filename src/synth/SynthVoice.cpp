@@ -1,6 +1,7 @@
 #include "synth/SynthVoice.hpp"
 #include <cmath>
 #include <cstdint>
+#include "constants.h"
 
 extern "C" {
 #include "dsp/adsr.h"
@@ -18,6 +19,7 @@ void SynthVoice::init(Program *program, float *modTable, float *carrierTable, fl
 	envStructToAdsr(&ampEnv, &program->ampEnv, sr);
 	envStructToAdsr(&modEnv, &program->ampEnv, sr);
 	cToMRatio = program->cToMRatio;
+	type = program->type;
 }
 
 void SynthVoice::noteOn(uint32_t midiNote) {
@@ -48,13 +50,14 @@ static float bitCrush(const float x, const uint8_t precision) {
 	return (((float)quantitized / max) * 2) - 1;
 }
 
-void SynthVoice::renderInner(uint32_t start, uint32_t end, float* outputBuffer) {
+void SynthVoice::renderInnerNormal(uint32_t start, uint32_t end, float* outputBuffer) {
 	if (end - start <= 0) {
 		return;
 	}
 
 	const float len = static_cast<float>(carrier.tableLen);
-	const float scalingConstant = static_cast<float>(modulator.tableLen) / 8;
+	const float invLen = 1.0f / len;
+	const float scalingConstant = len / 8;
 
 	for (uint32_t i = start; i < end; i++) {
 		const float ampEnvVal = adsrCalculateExp(&ampEnv);
@@ -70,8 +73,8 @@ void SynthVoice::renderInner(uint32_t start, uint32_t end, float* outputBuffer) 
 		const float currentModDepth = (modulator.modIndex * scalingConstant) * modEnvVal;
 
 		float perturbed = carrier.phase + (modVal * currentModDepth);
+		if (perturbed < 0) perturbed += len;
 
-		float invLen = 1.0f / len;
 		perturbed -= len * (float)((int)(perturbed * invLen));
 
 		outputBuffer[i] += carrier.table[static_cast<int>(perturbed)] * ampEnvVal;
@@ -81,13 +84,50 @@ void SynthVoice::renderInner(uint32_t start, uint32_t end, float* outputBuffer) 
 	}	
 }
 
+void SynthVoice::renderInnerFeedback(uint32_t start, uint32_t end, float* outputBuffer) {
+	if (end - start <= 0) {
+		return;
+	}
+
+	const float len = static_cast<float>(carrier.tableLen);
+	const float invLen = 1.0f / len;
+	const float scalingConstant = len / TWO_PI_FLOAT;
+
+	for (int i = start; i < end; i++) {
+		const float ampEnvVal = adsrCalculateExp(&ampEnv);
+		const float modEnvVal = adsrCalculateExp(&modEnv);
+
+		if (ampEnv.state == IDLE) {
+			state = VOICE_IDLE;
+			break;
+		}
+
+		const float feedbackDepth = modulator.modIndex * modEnvVal;
+
+		float perturbed = carrier.phase + (lastOutput * feedbackDepth * scalingConstant);
+
+		if (perturbed < 0) perturbed += len;
+		perturbed -= len * (float)((int)(perturbed * invLen));
+
+		float currentSample = carrier.table[static_cast<int>(perturbed)];
+		lastOutput = currentSample;
+
+		outputBuffer[i] += carrier.table[static_cast<int>(perturbed)] * ampEnvVal;
+		oscIncreasePhase(&carrier);
+	}
+}
+
 void SynthVoice::processBlock(float* outputBuffer, size_t blockSize) {
 	if (state == VOICE_IDLE) return;
 	uint32_t cursor = 0;
 
 	while (eventIndex < events.size()) {
 		VoiceEvent& ev = events[eventIndex];
-		renderInner(cursor, ev.offset, outputBuffer);
+		if (type == STANDARD_PM) {
+			renderInnerNormal(cursor, ev.offset, outputBuffer);
+		} else if (type == FEEDBACK) {
+			renderInnerFeedback(cursor, ev.offset, outputBuffer);
+		}
 
 		cursor = ev.offset;
 
@@ -100,7 +140,11 @@ void SynthVoice::processBlock(float* outputBuffer, size_t blockSize) {
 		eventIndex++;
 	}
 
-	renderInner(cursor, blockSize, outputBuffer);
+	if (type == STANDARD_PM) {
+		renderInnerNormal(cursor, blockSize, outputBuffer);
+	} else if (type == FEEDBACK) {
+		renderInnerFeedback(cursor, blockSize, outputBuffer);
+	}
 	events.clear();
 	eventIndex = 0;
 }

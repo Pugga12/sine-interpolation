@@ -22,7 +22,8 @@ constinit Program PRG_DEFAULT_BASS {
         MS_TO_S(50),
         0.1,
         MS_TO_S(500)
-    }
+    },
+    FEEDBACK
 };
 
 void VoiceManager::initPrintDbg() {

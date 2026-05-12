@@ -19,11 +19,17 @@ enum EventType {
     PROGRAM_CHANGE
 };
 
+enum OscillatorType {
+    STANDARD_PM,
+    FEEDBACK
+};
+
 struct Program {
     float modIndex;
     float cToMRatio;
     Envelope ampEnv;
     Envelope modEnv;
+    OscillatorType type;
 };
 
 struct VoiceEvent {
@@ -39,6 +45,7 @@ class SynthVoice {
     private:
 
         std::vector<VoiceEvent> events;
+        OscillatorType type;
         Oscillator carrier;
         Oscillator modulator;
         ADSR ampEnv;
@@ -49,11 +56,11 @@ class SynthVoice {
         VoiceState state = VOICE_IDLE;
         float sampleRate;
         float cToMRatio;
+        
+        float lastOutput = 0;
 
-
-
-        void renderInner(uint32_t start, uint32_t end, float* outputBuffer);
-
+        void renderInnerNormal(uint32_t start, uint32_t end, float* outputBuffer);
+        void renderInnerFeedback(uint32_t start, uint32_t end, float* output);
     public:
         void noteOn(uint32_t midiNote);
         void noteOff();
@@ -64,6 +71,7 @@ class SynthVoice {
         VoiceState getState() {
             return state;
         }
+
         uint32_t getNote() {
             return currentMidiNote;
         }
@@ -75,7 +83,8 @@ class SynthVoice {
             ampEnv{},
             modEnv{},
             sampleRate(44100),
-            cToMRatio(1)
+            cToMRatio(1),
+            type(STANDARD_PM)
         {
             events.reserve(8);
         }

@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     smf::Options options;
     options.process(argc, argv);
 	float* sinePtr = static_cast<float*>(malloc(sizeof(float) * 4096));
-	float* outputPtr = static_cast<float*>(malloc(sizeof(float) * 2072700));
+	float* outputPtr = static_cast<float*>(malloc(sizeof(float) * 10584000));
 	wavetableGenSine(sinePtr, 4096);
 
     MidiProcessor mp;
@@ -46,12 +46,12 @@ int main(int argc, char** argv) {
     mp.convert();
 
 	VoiceManager vm(mp.getEvents(), sinePtr, sinePtr, 44100.0f, 4096);
-	if (!vm.go(outputPtr, 2072700)) {
+	if (!vm.go(outputPtr, 10584000)) {
         std::printf("Invalid output size");
         return -1;
     }
     char* str = "new.wav";
-    writeWavF32(str, outputPtr, 2028600, 44100);
+    writeWavF32(str, outputPtr, 10584000, 44100);
 
 
 	free(sinePtr);
