@@ -42,10 +42,13 @@ void SynthVoice::init(Program *program, float *modTable, float *carrierTable, fl
 
 void SynthVoice::noteOn(uint32_t midiNote) {
 	this->currentMidiNote = midiNote;
-	const float newFrequency = noteToFrequency(midiNote);
+	baseCarrier = noteToFrequency(midiNote);
+	currentCarrierFrequency = baseCarrier;
+	targetCarrierFrequency = baseCarrier;
+	rampSamplesRemaining = 0;
 
-	oscUpdateFrequency(&carrier, newFrequency);
-	oscUpdateFrequency(&modulator, newFrequency * cToMRatio);
+	oscUpdateFrequency(&carrier, baseCarrier);
+	oscUpdateFrequency(&modulator, baseCarrier * cToMRatio);
 
 	reset(&ampEnv);
 	reset(&modEnv);
@@ -78,6 +81,20 @@ void SynthVoice::renderInnerNormal(uint32_t start, uint32_t end, float* outputBu
 	const float scalingConstant = len / 8;
 
 	for (uint32_t i = start; i < end; i++) {
+		if (rampSamplesRemaining > 0) {
+			currentCarrierFrequency += rampInc;
+
+			oscUpdateFrequency(&carrier, currentCarrierFrequency);
+			oscUpdateFrequency(&modulator, currentCarrierFrequency * cToMRatio);
+
+			rampSamplesRemaining--;
+			if (rampSamplesRemaining == 0) {
+				currentCarrierFrequency = targetCarrierFrequency;
+				oscUpdateFrequency(&carrier, targetCarrierFrequency);
+				oscUpdateFrequency(&modulator, targetCarrierFrequency * cToMRatio);
+			}
+		}
+
 		const float ampEnvVal = adsrCalculateExp(&ampEnv);
 		const float modEnvVal = adsrCalculateExp(&modEnv);
 
@@ -112,6 +129,18 @@ void SynthVoice::renderInnerFeedback(uint32_t start, uint32_t end, float* output
 	const float scalingConstant = len / TWO_PI_FLOAT;
 
 	for (int i = start; i < end; i++) {
+		if (rampSamplesRemaining > 0) {
+			currentCarrierFrequency += rampInc;
+
+			oscUpdateFrequency(&carrier, currentCarrierFrequency);
+
+			rampSamplesRemaining--;
+			if (rampSamplesRemaining == 0) {
+				currentCarrierFrequency = targetCarrierFrequency;
+				oscUpdateFrequency(&carrier, targetCarrierFrequency);
+			}
+		}
+
 		const float ampEnvVal = adsrCalculateExp(&ampEnv);
 		const float modEnvVal = adsrCalculateExp(&modEnv);
 
@@ -153,6 +182,8 @@ void SynthVoice::processBlock(float* outputBuffer, size_t blockSize) {
 			noteOn(ev.val);
 		} else if (ev.type == EventType::NOTE_OFF){
 			noteOff();
+		} else if (ev.type == EventType::PITCH_BEND) {
+			setMidiBend(ev.val);
 		}
 
 		eventIndex++;
@@ -173,4 +204,15 @@ void SynthVoice::pushEv(VoiceEvent& ev) {
   }
 
   events.push_back(ev);
+}
+
+void SynthVoice::setMidiBend(uint32_t bVal) {
+	const float normalizedBend = (static_cast<float>(bVal) - 8192.0f) / 8192.0f;
+	const float pitchBendSemitones = normalizedBend * pitchBendRange;
+
+	float ratio = std::exp2(pitchBendSemitones / 12.0f);
+    targetCarrierFrequency = baseCarrier * ratio;
+
+	rampSamplesRemaining = 32;
+	rampInc = (targetCarrierFrequency - currentCarrierFrequency) / 32;
 }

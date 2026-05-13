@@ -30,7 +30,7 @@
             "label": "CMake: build",
             "command": "build",
             "targets": [
-                "phase-mod-demo"
+                "dzsungel"
             ],
             "group": "build",
             "problemMatcher": [],

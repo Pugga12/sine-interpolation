@@ -40,7 +40,6 @@ void oscInit(Oscillator* osc, float *table, size_t tableLen, float freq, float m
 }
 
 void oscUpdateFrequency(Oscillator *osc, float newFreq) {
-    osc->phase = 0.0f;
     osc->oscillatorFrequency = newFreq;
     osc->phaseIncrement = ((float)osc->tableLen * newFreq) / osc->sampleRate;
 }

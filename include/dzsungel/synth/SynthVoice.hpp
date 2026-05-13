@@ -34,7 +34,8 @@ enum VoiceState {
 enum EventType {
     NOTE_ON,
     NOTE_OFF,
-    PROGRAM_CHANGE
+    PROGRAM_CHANGE,
+    PITCH_BEND
 };
 
 enum OscillatorType {
@@ -75,10 +76,18 @@ class SynthVoice {
         float sampleRate;
         float cToMRatio;
         
+        float pitchBendRange = 2.0f;
+        float baseCarrier = 0.0f;
+        float currentCarrierFrequency = 0.0f;
+        float targetCarrierFrequency = 0.0f;
+        float rampInc = 0.0f;
+        uint32_t rampSamplesRemaining = 0;
+        
         float lastOutput = 0;
 
         void renderInnerNormal(uint32_t start, uint32_t end, float* outputBuffer);
         void renderInnerFeedback(uint32_t start, uint32_t end, float* output);
+        void setMidiBend(uint32_t bVal);
     public:
         void noteOn(uint32_t midiNote);
         void noteOff();

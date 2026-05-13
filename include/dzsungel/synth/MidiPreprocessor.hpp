@@ -27,6 +27,7 @@ struct PreprocessorVoiceState {
     uint32_t startTime = 0;
     uint32_t endTime = 0;
     uint32_t pitch = 0;
+    uint32_t channel = 255;
 };
 
 class MidiProcessor {
@@ -34,11 +35,15 @@ class MidiProcessor {
     std::vector<TimedEvent> processedEvents;
     std::array<PreprocessorVoiceState, 24> voices;
     smf::MidiFile midiData;
+    size_t noteEvents = 0;
+    size_t bendEvents = 0;
     std::string filename;
+    std::array<std::vector<uint8_t>, 16> channelRosters;
     int reassignments = 0;
     size_t finalTc;
 
-    uint8_t assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch);
+    uint8_t assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch, uint32_t channel);
+    void removeVoiceFromRosters(uint8_t voice);
     void printPreprocessorStats();
     public:
     bool load(const std::string& filename);

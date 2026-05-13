@@ -6,11 +6,13 @@
     "configurations": [
         {
             "name": "(gdb) Launch",
+            "preLaunchTask": "CMake: build",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/bin/phase-mod-demo",
+            "program": "${workspaceRoot}/bin/dzsungel",
             "args": [
-                "Hava Nagila.mid"
+                "Bonanza Banzai - Induljon a banzai.mid",
+                "dbg.wab"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/bin",

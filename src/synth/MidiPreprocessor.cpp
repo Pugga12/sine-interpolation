@@ -42,37 +42,65 @@ bool MidiProcessor::load(const std::string& filename)
 
 void MidiProcessor::convert()
 {
+    for (auto& r : channelRosters) {
+        r.clear();
+    }
+
     for (int i = 0; i < midiData[0].size(); i++) {
         smf::MidiEvent& ev = midiData[0][i];
 
-        if (!ev.isNoteOn()) {
-            continue;
+        if (ev.isNoteOn()) { 
+            smf::MidiEvent* offEvent = ev.getLinkedEvent();
+
+            if (offEvent == nullptr) {
+                continue;
+            }
+
+            uint32_t startTc = static_cast<uint32_t>(ev.seconds * 44100.0);
+            uint32_t endTc = static_cast<uint32_t>(offEvent->seconds * 44100.0);
+            uint32_t pitch = static_cast<uint32_t>(ev.getP1());
+            uint32_t channel = static_cast<uint32_t>(ev.getChannel());
+
+            uint8_t voice = assignNoteToVoice(startTc, endTc, pitch, channel);
+            
+
+            processedEvents.push_back({
+                voice,
+                startTc,
+                NOTE_ON,
+                pitch
+            });
+
+            processedEvents.push_back({
+                voice,
+                endTc,
+                NOTE_OFF,
+                pitch
+            });
+
+            noteEvents += 2;
+        } else if (ev.isPitchbend()) {
+            uint32_t currentTc = static_cast<uint32_t>(ev.seconds * 44100.0);
+            uint32_t channel = static_cast<uint32_t>(ev.getChannel());
+            uint32_t bend = (static_cast<uint32_t>(ev.getP2() << 7) | static_cast<uint32_t>(ev.getP1()));
+
+            auto& roster = channelRosters[channel];
+
+            roster.erase(std::remove_if(roster.begin(), roster.end(), [&](uint8_t v) {
+                return voices.at(v).endTime < currentTc;
+            }), roster.end());
+
+            for (uint8_t voiceId : roster) {
+                    processedEvents.push_back({
+                        voiceId,
+                        currentTc,
+                        PITCH_BEND,
+                        bend
+                    });
+            }
+
+            bendEvents++;
         }
-
-        smf::MidiEvent* offEvent = ev.getLinkedEvent();
-
-        if (offEvent == nullptr) {
-            continue;
-        }
-
-        uint32_t startTc = static_cast<uint32_t>(ev.seconds * 44100.0);
-        uint32_t endTc = static_cast<uint32_t>(offEvent->seconds * 44100.0);
-        uint32_t pitch = static_cast<uint32_t>(ev.getP1());
-        uint8_t voice = assignNoteToVoice(startTc, endTc, pitch);
-
-        processedEvents.push_back({
-            voice,
-            startTc,
-            NOTE_ON,
-            pitch
-        });
-
-        processedEvents.push_back({
-            voice,
-            endTc,
-            NOTE_OFF,
-            pitch
-        });
     }
 
     std::sort(
@@ -103,15 +131,19 @@ std::vector<TimedEvent>& MidiProcessor::getEvents()
     return processedEvents;
 }
 
-uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch)
+uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch, uint32_t channel)
 {
     for (int i = 0; i < voices.size(); i++) {
         auto& voice = voices[i];
 
         if (voice.endTime + 1 < startTime) {
+            removeVoiceFromRosters(i);
+
             voice.startTime = startTime;
             voice.endTime = endTime;
             voice.pitch = pitch;
+            voice.channel = channel;
+            channelRosters[channel].push_back(i);
 
             return i;
         }
@@ -135,16 +167,33 @@ uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, u
         voices[victim].pitch
     });
 
+    removeVoiceFromRosters(victim);
+
     voices[victim].startTime = startTime;
     voices[victim].endTime = endTime;
     voices[victim].pitch = pitch;
+    voices[victim].channel = channel;
+
+    channelRosters[channel].push_back(victim);
 
     return victim;
 }
 
+void MidiProcessor::removeVoiceFromRosters(uint8_t voice)
+{
+    uint32_t vChannel = voices[voice].channel;
+    
+    if (vChannel != 255) {
+        auto& cVec = channelRosters[vChannel];
+        cVec.erase(std::remove(cVec.begin(), cVec.end(), voice), cVec.end());
+    }
+}
 void MidiProcessor::printPreprocessorStats()
 {
     std::cout << "=== MIDI File " << filename << " Preprocessing ===" << "\n";
     std::cout << "Total events in MIDI file: " << midiData[0].size() << "\n";
-    std::cout << "Note Events Processed: " << processedEvents.size() << " (incl. " << reassignments << " voice reassignments)" << "\n";
+    std::cout << "Note Events Processed: " << noteEvents << "\n";
+    std::cout << "Pitch Bends Processed: " << bendEvents << "\n";
+    std::cout << "Total Output: " << processedEvents.size() << " event(s)" << "\n";
+    std::cout << "Includes " << reassignments << " reassignment(s)" << "\n";
 }
