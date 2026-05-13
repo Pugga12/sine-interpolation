@@ -92,6 +92,9 @@ void MidiProcessor::convert()
         }
     );
 
+    auto& back = processedEvents.back();
+    finalTc = back.timecode;
+
     printPreprocessorStats();
 }
 
@@ -138,6 +141,7 @@ uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, u
 
     return victim;
 }
+
 void MidiProcessor::printPreprocessorStats()
 {
     std::cout << "=== MIDI File " << filename << " Preprocessing ===" << "\n";

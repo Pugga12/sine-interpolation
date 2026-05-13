@@ -26,12 +26,16 @@ extern "C" {
     #include "io/wav.h"
 }
 
+constexpr size_t WAVETABLE_SIZE = 4096;
+constexpr uint32_t SAMPLE_RATE = 44100;
+constexpr float SAMPLE_RATE_F = static_cast<float>(SAMPLE_RATE);
+
 int main(int argc, char** argv) {
     smf::Options options;
     options.process(argc, argv);
-	float* sinePtr = static_cast<float*>(malloc(sizeof(float) * 4096));
-	float* outputPtr = static_cast<float*>(malloc(sizeof(float) * 10584000));
-	wavetableGenSine(sinePtr, 4096);
+	std::vector<float> sineTbl(WAVETABLE_SIZE);
+    
+	wavetableGenSine(sineTbl.data(), WAVETABLE_SIZE);
 
     MidiProcessor mp;
     if (options.getArgCount() == 0) return -3;
@@ -40,21 +44,22 @@ int main(int argc, char** argv) {
     }
     mp.convert();
 
-	VoiceManager vm(mp.getEvents(), sinePtr, sinePtr, 44100.0f, 4096);
-	if (!vm.go(outputPtr, 10584000)) {
+    size_t outputSize = mp.getFinalTc() + (SAMPLE_RATE / 4);
+    std::vector<float> output(outputSize);
+	VoiceManager vm(mp.getEvents(), sineTbl.data(), sineTbl.data(), SAMPLE_RATE_F, WAVETABLE_SIZE);
+
+	if (!vm.go(output.data(), outputSize)) {
         std::printf("Invalid output size");
         return -1;
     }
+
     if (options.getArgCount() == 2) {
         auto& filename = options.getArg(2);
-        writeWavF32(filename.data(), outputPtr, 10584000, 44100);
+        writeWavF32(filename.c_str(), output.data(), outputSize, SAMPLE_RATE);
     } else {
-        char* defaultString = "out.wav";
-        writeWavF32(defaultString, outputPtr, 10584000, 44100);
+        const std::string defaultName = "out.wav";
+        writeWavF32(defaultName.c_str(), output.data(), outputSize, SAMPLE_RATE);
     }
 
-
-	free(sinePtr);
-	free(outputPtr);
 	return 0;
 }

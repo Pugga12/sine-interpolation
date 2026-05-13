@@ -1,5 +1,5 @@
 # dzsungel-fm
-Dzsungel (Hungarian for "jungle") is a phase modulation-based software synth designed to emulate the sound of 80's New Wave music, particularly [Spandau Ballet](https://en.wikipedia.org/wiki/Spandau_Ballet) and the Hungarian synth pop band [Bonanza Banzai](https://en.wikipedia.org/wiki/Bonanza_Banzai), from which this project's name is derived. It is written mostly in C++ with a bit of C.
+Dzsungel (Hungarian for "jungle") is a phase modulation-based software synth designed to emulate the sound of 80's New Wave music, particularly [Spandau Ballet](https://en.wikipedia.org/wiki/Spandau_Ballet) and the Hungarian synth pop band [Bonanza Banzai](https://en.wikipedia.org/wiki/Bonanza_Banzai), the latter of which inspired the name. It is written mostly in C++ with a bit of C.
 
 # Features
 - Partial MIDI support (currently just note on / note off, support for more MIDI features coming soon)
@@ -13,8 +13,12 @@ cmake -B build
 cmake --build build
 ```
 Your executable will be in the `bin` folder. 
-## Example usage
+## Usage
 ```bash
-./bin/dzsungel "Induljon a Banzaj.mid" your-file-name-here.wav
+./bin/dzsungel [input midi file] [output wav file (optional)]
+```
+For example:
+```bash
+./bin/dzsungel "Bonanza Banzai - Induljon a banzai.mid" magyar.wav
 ```
 If you do not type in an output file name, it will automatically be written to `out.wav`

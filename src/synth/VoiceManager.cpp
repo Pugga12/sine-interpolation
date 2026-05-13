@@ -144,7 +144,7 @@ bool VoiceManager::go(float* outputBuffer, size_t outputSize) {
     }
 
     for (int i = 0; i < outputSize; i++) {
-        outputBuffer[i] = std::tanhf(outputBuffer[i] * 0.1f);
+        outputBuffer[i] = std::tanh(outputBuffer[i] * 0.1f);
     }
 
     return true;

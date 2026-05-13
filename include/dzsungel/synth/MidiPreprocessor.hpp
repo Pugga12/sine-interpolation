@@ -36,6 +36,7 @@ class MidiProcessor {
     smf::MidiFile midiData;
     std::string filename;
     int reassignments = 0;
+    size_t finalTc;
 
     uint8_t assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch);
     void printPreprocessorStats();
@@ -43,4 +44,7 @@ class MidiProcessor {
     bool load(const std::string& filename);
     void convert();
     std::vector<TimedEvent>& getEvents();
+    size_t getFinalTc() {
+        return finalTc;
+    }
 };
