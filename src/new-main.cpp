@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with Dzsungel.  If not, see <http://www.gnu.org/license>
 */
 #include <cstdlib>
+#include <memory>
 #include "synth/VoiceManager.hpp"
 #include "synth/MidiPreprocessor.hpp"
 #include "Options.h"
@@ -34,19 +35,24 @@ int main(int argc, char** argv) {
     smf::Options options;
     options.process(argc, argv);
 	std::vector<float> sineTbl(WAVETABLE_SIZE);
+    size_t outputSize = 0;
     
 	wavetableGenSine(sineTbl.data(), WAVETABLE_SIZE);
+    std::vector<TimedEvent> extractedTimeline;
 
-    MidiProcessor mp;
-    if (options.getArgCount() == 0) return -3;
-    if(!mp.load(options.getArg(1))) {
-        return -2;
+    {
+        MidiProcessor mp;
+        if (options.getArgCount() == 0) return -3;
+        if(!mp.load(options.getArg(1))) {
+            return -2;
+        }
+        mp.convert();
+        outputSize = mp.getFinalTc() + (SAMPLE_RATE / 4);
+        extractedTimeline = std::move(mp.getEvents());
     }
-    mp.convert();
 
-    size_t outputSize = mp.getFinalTc() + (SAMPLE_RATE / 4);
     std::vector<float> output(outputSize);
-	VoiceManager vm(mp.getEvents(), sineTbl.data(), sineTbl.data(), SAMPLE_RATE_F, WAVETABLE_SIZE);
+	VoiceManager vm(extractedTimeline, sineTbl.data(), sineTbl.data(), SAMPLE_RATE_F, WAVETABLE_SIZE);
 
 	if (!vm.go(output.data(), outputSize)) {
         std::printf("Invalid output size");

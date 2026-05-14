@@ -111,13 +111,14 @@ bool VoiceManager::go(float* outputBuffer, size_t outputSize) {
 
         while (currentEvent < events.size() && events[currentEvent].blockId == i) {
             VoiceEvent& ev = events[currentEvent];
+
             if (ev.voiceId < voices.size()) {
                 voices[ev.voiceId].pushEv(ev);
             }
             currentEvent++;
         }
 
-        for (auto& v : voices) {
+         for (auto& v : voices) {
             if (v.getState() != VOICE_IDLE) {
                  v.processBlock(bSt, 64);
             }
@@ -144,7 +145,7 @@ bool VoiceManager::go(float* outputBuffer, size_t outputSize) {
     }
 
     for (int i = 0; i < outputSize; i++) {
-        outputBuffer[i] = std::tanh(outputBuffer[i] * 0.1f);
+        outputBuffer[i] = std::tanh(outputBuffer[i] * 0.5f);
     }
 
     return true;

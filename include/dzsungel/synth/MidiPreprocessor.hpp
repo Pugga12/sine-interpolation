@@ -20,8 +20,10 @@ along with Dzsungel.  If not, see <http://www.gnu.org/license>
 #include "synth/SynthVoice.hpp"
 #include "synth/VoiceManager.hpp"
 #include "MidiFile.h"
+#include <cstdint>
 #include <vector>
 #include <array>
+using namespace smf;
 
 struct PreprocessorVoiceState {
     uint32_t startTime = 0;
@@ -30,25 +32,41 @@ struct PreprocessorVoiceState {
     uint32_t channel = 255;
 };
 
+struct ChannelState {
+    uint16_t pitchBend = 0;
+    uint32_t progId = 0;
+    uint8_t expression = 127;
+    uint8_t volume = 127;
+    uint8_t pan = 64;
+};
+
 class MidiProcessor {
     private:
     std::vector<TimedEvent> processedEvents;
     std::array<PreprocessorVoiceState, 24> voices;
-    smf::MidiFile midiData;
+    std::array<ChannelState, 16> channelStates;
+    std::array<ChannelState, 24> lastChannelStateUpdate;
+    MidiFile midiData;
     size_t noteEvents = 0;
     size_t bendEvents = 0;
     std::string filename;
     std::array<std::vector<uint8_t>, 16> channelRosters;
     int reassignments = 0;
+    int syncEvents = 0;
     size_t finalTc;
 
     uint8_t assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch, uint32_t channel);
     void removeVoiceFromRosters(uint8_t voice);
     void printPreprocessorStats();
+    void processNoteEvent(MidiEvent& stEv, MidiEvent* endEv);
+    void processPitchBend(MidiEvent& ev);
+    void processCc(MidiEvent& ev);
+    void generateVoiceSetupEvents(uint8_t voice, uint32_t channel, uint32_t timecode);
     public:
     bool load(const std::string& filename);
     void convert();
     std::vector<TimedEvent>& getEvents();
+
     size_t getFinalTc() {
         return finalTc;
     }

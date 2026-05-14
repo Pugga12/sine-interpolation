@@ -32,10 +32,15 @@ enum VoiceState {
 };
 
 enum EventType {
-    NOTE_ON,
-    NOTE_OFF,
-    PROGRAM_CHANGE,
-    PITCH_BEND
+    // CC event (0 - 127)
+    CC7_VOLUME = 7,
+    CC11_EXPRESSION = 11,
+
+    // other events (>127)
+    NOTE_ON = 128,
+    NOTE_OFF = 129,
+    PROGRAM_CHANGE = 130,
+    PITCH_BEND = 131,
 };
 
 enum OscillatorType {
@@ -62,7 +67,6 @@ struct VoiceEvent {
 
 class SynthVoice {
     private:
-
         std::vector<VoiceEvent> events;
         OscillatorType type;
         Oscillator carrier;
@@ -82,6 +86,9 @@ class SynthVoice {
         float targetCarrierFrequency = 0.0f;
         float rampInc = 0.0f;
         uint32_t rampSamplesRemaining = 0;
+
+        float expresssion = 1.0f;
+        float masterVolume = 1.0f;
         
         float lastOutput = 0;
 

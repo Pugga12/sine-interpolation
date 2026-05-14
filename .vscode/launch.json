@@ -12,7 +12,7 @@
             "program": "${workspaceRoot}/bin/dzsungel",
             "args": [
                 "Bonanza Banzai - Induljon a banzai.mid",
-                "dbg.wab"
+                "dbg.wav"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/bin",

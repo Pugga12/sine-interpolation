@@ -183,7 +183,3 @@ float adsrCalculateExp(ADSR* adsr) {
     adsr->prevGate = adsr->gate;
     return adsr->y;
 }
-
-float adsrGetAtSample(ADSR* adsr, uint32_t sampleNo) {
-    
-}

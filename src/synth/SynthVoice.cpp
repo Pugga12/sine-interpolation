@@ -27,7 +27,7 @@ extern "C" {
 }
 
 static float noteToFrequency(uint32_t note) {
-	return 440.0f * std::pow(2.0f, (note - 69.0f) / 12.0f);
+	return 440.0f * std::exp2((note - 69.0f) / 12.0f);
 }
 
 void SynthVoice::init(Program *program, float *modTable, float *carrierTable, float sr, size_t tableSize) {
@@ -111,8 +111,9 @@ void SynthVoice::renderInnerNormal(uint32_t start, uint32_t end, float* outputBu
 		if (perturbed < 0) perturbed += len;
 
 		perturbed -= len * (float)((int)(perturbed * invLen));
+		const float vol = ampEnvVal *  expresssion * masterVolume;
 
-		outputBuffer[i] += carrier.table[static_cast<int>(perturbed)] * ampEnvVal;
+		outputBuffer[i] += carrier.table[static_cast<int>(perturbed)] * vol;
 
 		oscIncreasePhase(&carrier);
 		oscIncreasePhase(&modulator);
@@ -157,9 +158,10 @@ void SynthVoice::renderInnerFeedback(uint32_t start, uint32_t end, float* output
 		perturbed -= len * (float)((int)(perturbed * invLen));
 
 		float currentSample = carrier.table[static_cast<int>(perturbed)];
+		const float vol = ampEnvVal *  expresssion * masterVolume;
 		lastOutput = currentSample;
 
-		outputBuffer[i] += carrier.table[static_cast<int>(perturbed)] * ampEnvVal;
+		outputBuffer[i] += carrier.table[static_cast<int>(perturbed)] * vol;
 		oscIncreasePhase(&carrier);
 	}
 }
@@ -184,6 +186,10 @@ void SynthVoice::processBlock(float* outputBuffer, size_t blockSize) {
 			noteOff();
 		} else if (ev.type == EventType::PITCH_BEND) {
 			setMidiBend(ev.val);
+		} else if (ev.type == EventType::CC11_EXPRESSION) {
+			expresssion = ev.val / 127.0f;
+		} else if (ev.type == CC7_VOLUME) {
+			masterVolume = ev.val / 127.0f;
 		}
 
 		eventIndex++;
