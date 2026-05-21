@@ -28,6 +28,14 @@ target_compile_definitions(libfixmath PRIVATE
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(cmake/CPM.cmake)
+
+CPMAddPackage(
+        NAME SimplePA
+        GITHUB_REPOSITORY YukiWorkshop/SimplePA
+        VERSION 0.0.1
+)
+
 # Include paths
 set(INCLUDE_DIRS ${INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/dzsungel)
 
@@ -54,7 +62,8 @@ set(COMMON_SOURCES src/io/wav.c src/dsp/adsr.c src/dsp/oscillator.c
 
 set(MAIN_FILE src/new-main.cpp)
 add_executable(dzsungel ${COMMON_SOURCES} ${MAIN_FILE} ${MIDIFILE_SOURCES})
-target_link_libraries(dzsungel PRIVATE m libfixmath)
+target_include_directories(dzsungel PUBLIC ${SimplePA_SOURCE_DIR})
+target_link_libraries(dzsungel PRIVATE m libfixmath SimplePA)
 target_include_directories(dzsungel PRIVATE ${libfixmath_SOURCE_DIR}/libfixmath include/midifile)
 if(EXPONENTIAL_ADSR)
     target_compile_definitions(dzsungel PRIVATE EXPONENTIAL_ADSR)

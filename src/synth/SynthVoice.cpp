@@ -182,7 +182,7 @@ void SynthVoice::processBlock(float* outputBuffer, size_t blockSize) {
 		cursor = ev.offset;
 
 		if (ev.type == EventType::NOTE_ON) {
-			noteOn(ev.val);
+			noteOn(ev.val, 0);
 		} else if (ev.type == EventType::NOTE_OFF){
 			noteOff();
 		} else if (ev.type == EventType::PITCH_BEND) {
