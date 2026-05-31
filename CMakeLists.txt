@@ -54,6 +54,8 @@ set(COMMON_SOURCES src/io/wav.c src/dsp/adsr.c src/dsp/oscillator.c
         src/data/Programs.cpp
 )
 
+set(MAX_VOICES 32 CACHE STRING "Max voice polyphony")
+
 set(MAIN_FILE src/new-main.cpp)
 add_executable(dzsungel ${COMMON_SOURCES} ${MAIN_FILE} ${MIDIFILE_SOURCES})
 target_link_libraries(dzsungel PRIVATE m libfixmath)
@@ -61,3 +63,7 @@ target_include_directories(dzsungel PRIVATE ${libfixmath_SOURCE_DIR}/libfixmath 
 if(EXPONENTIAL_ADSR)
     target_compile_definitions(dzsungel PRIVATE EXPONENTIAL_ADSR)
 endif ()
+target_compile_definitions(
+    dzsungel
+    PRIVATE MAX_VOICES=${MAX_VOICES}
+)

@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with Dzsungel.  If not, see <http://www.gnu.org/license>
 */
 #include <cstdlib>
+#include <iostream>
 #include <memory>
 #include "synth/VoiceManager.hpp"
 #include "synth/MidiPreprocessor.hpp"
@@ -32,6 +33,7 @@ constexpr uint32_t SAMPLE_RATE = 44100;
 constexpr float SAMPLE_RATE_F = static_cast<float>(SAMPLE_RATE);
 
 int main(int argc, char** argv) {
+    std::cout << "Voices Configured: " << MAX_VOICES << "\n";
     smf::Options options;
     options.process(argc, argv);
 	std::vector<float> sineTbl(WAVETABLE_SIZE);

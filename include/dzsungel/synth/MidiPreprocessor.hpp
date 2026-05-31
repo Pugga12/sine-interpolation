@@ -45,9 +45,9 @@ struct ChannelState {
 class MidiProcessor {
     private:
     std::vector<TimedEvent> processedEvents;
-    std::array<PreprocessorVoiceState, 24> voices;
+    std::array<PreprocessorVoiceState, MAX_VOICES> voices;
     std::array<ChannelState, 16> channelStates;
-    std::array<ChannelState, 24> lastChannelStateUpdate;
+    std::array<ChannelState, MAX_VOICES> lastChannelStateUpdate;
     MidiFile midiData;
     size_t noteEvents = 0;
     size_t bendEvents = 0;
