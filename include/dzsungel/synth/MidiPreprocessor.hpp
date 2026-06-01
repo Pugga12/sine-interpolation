@@ -24,6 +24,7 @@ along with Dzsungel.  If not, see <http://www.gnu.org/license>
 #include <cstdint>
 #include <vector>
 #include <array>
+#include <numeric>
 using namespace smf;
 
 struct PreprocessorVoiceState {
@@ -47,6 +48,7 @@ class MidiProcessor {
     std::vector<TimedEvent> processedEvents;
     std::array<PreprocessorVoiceState, MAX_VOICES> voices;
     std::array<ChannelState, 16> channelStates;
+    std::vector<uint8_t> availableVoices;
     std::array<ChannelState, MAX_VOICES> lastChannelStateUpdate;
     MidiFile midiData;
     size_t noteEvents = 0;
@@ -58,18 +60,22 @@ class MidiProcessor {
     size_t finalTc;
 
     uint8_t assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch, uint32_t channel);
-    void removeVoiceFromRosters(uint8_t voice);
     void printPreprocessorStats();
     void processNoteEvent(MidiEvent& stEv, MidiEvent* endEv);
     void processPitchBend(MidiEvent& ev);
     void processCc(MidiEvent& ev);
     void processProgramChange(MidiEvent& ev);
     void generateVoiceSetupEvents(uint8_t voice, uint32_t channel, uint32_t timecode);
-    std::vector<uint8_t>& getRosterAndClearOld(uint32_t channel, uint32_t currentTc);
+    uint8_t stealVoiceInChannel(uint32_t startTime, uint32_t endTime, uint32_t pitch, uint32_t channel);
     public:
     bool load(const std::string& filename);
     void convert();
     std::vector<TimedEvent>& getEvents();
+
+    MidiProcessor() {
+        availableVoices.resize(MAX_VOICES);
+        std::iota(availableVoices.begin(), availableVoices.end(), 0);
+    }
 
     size_t getFinalTc() {
         return finalTc;

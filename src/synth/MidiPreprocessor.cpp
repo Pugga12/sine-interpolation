@@ -23,6 +23,7 @@ along with Dzsungel.  If not, see <http://www.gnu.org/license>
 #include "synth/MidiPreprocessor.hpp"
 #include <cstdint>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 #include "types.hpp"
 using namespace smf;
@@ -100,32 +101,60 @@ std::vector<TimedEvent>& MidiProcessor::getEvents()
 
 uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, uint32_t pitch, uint32_t channel)
 {
-    for (int i = 0; i < voices.size(); i++) {
-        auto& voice = voices[i];
+    auto& cVec = channelRosters[channel];
+    for (int i = 0; i < cVec.size(); i++) {
+        uint8_t vId = cVec[i];
+        auto& voice = voices[vId];
 
         if (voice.endTime + 1 < startTime) {
-            removeVoiceFromRosters(i);
-
             voice.startTime = startTime;
             voice.endTime = endTime;
             voice.pitch = pitch;
             voice.channel = channel;
-            channelRosters[channel].push_back(i);
 
-            generateVoiceSetupEvents(i, channel, startTime);
+            generateVoiceSetupEvents(vId, channel, startTime);
 
-            return i;
+            return vId;
         }
     }
 
+    uint8_t newVoice = 0;
+    try {
+        newVoice = availableVoices.at(0);
+        availableVoices.erase(availableVoices.begin());
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Ran out of voices while trying to assign to channel " << channel << ". Please increase the MAX_VOICES option." << "\n";
+        if (channelRosters[channel].size() == 0) {
+            std::string msg = "Attempted to reassign a voice on channel " + std::to_string(channel) + " but no candidates were found.";
+            throw std::runtime_error(msg);
+        }
+        return stealVoiceInChannel(startTime, endTime, pitch, channel);
+        
+    }
+
+    cVec.push_back(newVoice);
+
+    voices[newVoice].startTime = startTime;
+    voices[newVoice].endTime = endTime;
+    voices[newVoice].pitch = pitch;
+    voices[newVoice].channel = channel;
+    generateVoiceSetupEvents(newVoice, channel, startTime);
+
+    return newVoice;
+}
+
+uint8_t MidiProcessor::stealVoiceInChannel(uint32_t startTime, uint32_t endTime, uint32_t pitch, uint32_t channel) {
     reassignments++;
     int victim = 0;
-    uint32_t soonestEnd = voices[0].endTime;
+    auto& cVec = channelRosters[channel];
+    uint32_t soonestEnd = voices[cVec[0]].endTime;
 
-    for (int i = 1; i < voices.size(); i++) {
-        if (voices[i].endTime < soonestEnd) {
-            soonestEnd = voices[i].endTime;
-            victim = i;
+    for (int i = 1; i < cVec.size(); i++) {
+        uint8_t vId = cVec[i];
+        auto& v = voices[vId];
+        if (v.endTime < soonestEnd) {
+            soonestEnd = v.endTime;
+            victim = vId;
         }
     }
 
@@ -133,30 +162,16 @@ uint8_t MidiProcessor::assignNoteToVoice(uint32_t startTime, uint32_t endTime, u
         (uint8_t)victim,
         startTime,
         NOTE_OFF,
-        voices[victim].pitch
+        0
     });
-
-    removeVoiceFromRosters(victim);
 
     voices[victim].startTime = startTime;
     voices[victim].endTime = endTime;
     voices[victim].pitch = pitch;
-    voices[victim].channel = channel;
 
-    channelRosters[channel].push_back(victim);
     generateVoiceSetupEvents(victim, channel, startTime);
 
     return victim;
-}
-
-void MidiProcessor::removeVoiceFromRosters(uint8_t voice)
-{
-    uint32_t vChannel = voices[voice].channel;
-    
-    if (vChannel != 255) {
-        auto& cVec = channelRosters[vChannel];
-        cVec.erase(std::remove(cVec.begin(), cVec.end(), voice), cVec.end());
-    }
 }
 
 void MidiProcessor::printPreprocessorStats()
@@ -167,6 +182,7 @@ void MidiProcessor::printPreprocessorStats()
     std::cout << "Pitch Bends Processed: " << bendEvents << "\n";
     std::cout << "Total Output: " << processedEvents.size() << " event(s)" << "\n";
     std::cout << "Includes " << reassignments << " reassignment(s) and " << syncEvents << " voice syncs." << "\n";
+    std::cout << "Voices free at end of preprocessing: " << availableVoices.size() << "\n";
 }
 
 void MidiProcessor::processNoteEvent(MidiEvent& ev, MidiEvent* offEvent) {
@@ -199,7 +215,7 @@ void MidiProcessor::processPitchBend(MidiEvent& ev) {
     uint32_t channel = static_cast<uint32_t>(ev.getChannel());
     uint32_t bend = (static_cast<uint32_t>(ev.getP2() << 7) | static_cast<uint32_t>(ev.getP1()));
         
-    std::vector<uint8_t>& roster = getRosterAndClearOld(channel, currentTc);
+    std::vector<uint8_t>& roster = channelRosters[channel];
 
     for (uint8_t voiceId : roster) {
         processedEvents.push_back({
@@ -224,7 +240,7 @@ void MidiProcessor::processCc(MidiEvent& ev) {
     uint32_t channel = static_cast<uint32_t>(ev.getChannel());
     uint32_t value = static_cast<uint32_t>(ev.getP2());
 
-    std::vector<uint8_t>& roster = getRosterAndClearOld(channel, currentTc);
+    std::vector<uint8_t>& roster = channelRosters[channel];
 
     switch (ccNo) {
         case 7: {
@@ -269,7 +285,7 @@ void MidiProcessor::processProgramChange(MidiEvent& ev) {
     uint32_t channel = static_cast<uint32_t>(ev.getChannel());
     uint8_t value = static_cast<uint8_t>(ev.getP1());
     
-    std::vector<uint8_t>& roster = getRosterAndClearOld(channel, currentTc);
+    std::vector<uint8_t>& roster = channelRosters[channel];
     channelStates[channel].programId = value;
 
     for (uint8_t voiceId : roster) {
@@ -285,6 +301,7 @@ void MidiProcessor::processProgramChange(MidiEvent& ev) {
 }
 
 void MidiProcessor::generateVoiceSetupEvents(uint8_t voice, uint32_t channel, uint32_t timecode) {
+    
     if (lastChannelStateUpdate[voice].expression != channelStates[channel].expression) {
         uint8_t currentExpression = channelStates[channel].expression;
         lastChannelStateUpdate[voice].expression = currentExpression;
@@ -340,14 +357,5 @@ void MidiProcessor::generateVoiceSetupEvents(uint8_t voice, uint32_t channel, ui
 
         syncEvents++;
     }
-}
-
-std::vector<uint8_t>& MidiProcessor::getRosterAndClearOld(uint32_t channel, uint32_t currentTc) {
-    auto& roster = channelRosters[channel];
-
-    roster.erase(std::remove_if(roster.begin(), roster.end(), [&](uint8_t v) {
-        return voices.at(v).endTime < currentTc;
-    }), roster.end());
-
-    return roster;
+    
 }
